@@ -32,7 +32,7 @@ class QuotationMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Quotation Order')
+        return $this->subject('Quotation Details')
             ->markdown('emails.quotation')
             ->attachData($this->pdf, 'Quotation_' . $this->quote['Ref'] . '.pdf', [
                 'mime' => 'application/pdf',

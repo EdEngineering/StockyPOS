@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\ProvidersExport;
 use App\Models\Provider;
+use App\Models\Setting;
 use App\utils\helpers;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use App\Models\Purchase;
+use App\Models\PaymentPurchase;
+use App\Models\PurchaseReturn;
+use App\Models\PaymentPurchaseReturns;
+use Illuminate\Support\Facades\Auth;
 use DB;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ProvidersController extends BaseController
 {
@@ -54,8 +60,49 @@ class ProvidersController extends BaseController
             ->orderBy($order, $dir)
             ->get();
 
+        foreach ($providers as $provider) {
+
+            $item['total_amount'] = DB::table('purchases')
+                ->where('deleted_at', '=', null)
+                ->where('provider_id', $provider->id)
+                ->sum('GrandTotal');
+
+            $item['total_paid'] = DB::table('purchases')
+                ->where('deleted_at', '=', null)
+                ->where('provider_id', $provider->id)
+                ->sum('paid_amount');
+
+            $item['due'] = $item['total_amount'] - $item['total_paid'];
+
+            $item['total_amount_return'] = DB::table('purchase_returns')
+                ->where('deleted_at', '=', null)
+                ->where('provider_id', $provider->id)
+                ->sum('GrandTotal');
+
+            $item['total_paid_return'] = DB::table('purchase_returns')
+                ->where('deleted_at', '=', null)
+                ->where('provider_id', $provider->id)
+                ->sum('paid_amount');
+
+            $item['return_Due'] = $item['total_amount_return'] - $item['total_paid_return'];
+
+            $item['id'] = $provider->id;
+            $item['name'] = $provider->name;
+            $item['phone'] = $provider->phone;
+            $item['tax_number'] = $provider->tax_number;
+            $item['code'] = $provider->code;
+            $item['email'] = $provider->email;
+            $item['country'] = $provider->country;
+            $item['city'] = $provider->city;
+            $item['adresse'] = $provider->adresse;
+            $data[] = $item;
+        }
+
+        $company_info = Setting::where('deleted_at', '=', null)->first();
+
         return response()->json([
-            'providers' => $providers,
+            'providers' => $data,
+            'company_info' => $company_info,
             'totalRows' => $totalRows,
         ]);
     }
@@ -68,7 +115,6 @@ class ProvidersController extends BaseController
 
         request()->validate([
             'name' => 'required',
-            'email' => 'required',
         ]);
         Provider::create([
             'name' => $request['name'],
@@ -78,6 +124,7 @@ class ProvidersController extends BaseController
             'email' => $request['email'],
             'country' => $request['country'],
             'city' => $request['city'],
+            'tax_number' => $request['tax_number'],
         ]);
         return response()->json(['success' => true]);
 
@@ -98,7 +145,6 @@ class ProvidersController extends BaseController
 
         request()->validate([
             'name' => 'required',
-            'email' => 'required',
         ]);
 
         Provider::whereId($id)->update([
@@ -108,6 +154,7 @@ class ProvidersController extends BaseController
             'email' => $request['email'],
             'country' => $request['country'],
             'city' => $request['city'],
+            'tax_number' => $request['tax_number'],
         ]);
         return response()->json(['success' => true]);
 
@@ -142,14 +189,6 @@ class ProvidersController extends BaseController
         return response()->json(['success' => true]);
     }
 
-    //----------- Export Excel ALL Suppliers-------\\
-
-    public function exportExcel(Request $request)
-    {
-        $this->authorizeForUser($request->user('api'), 'view', Provider::class);
-
-        return Excel::download(new ProvidersExport, 'Providers.xlsx');
-    }
 
     //----------- get Number Order Of Suppliers-------\\
 
@@ -198,23 +237,137 @@ class ProvidersController extends BaseController
                 return null;
             }
 
+            $rules = array('name' => 'required');
+
             //-- Create New Provider
             foreach ($data as $key => $value) {
-                Provider::create([
-                    'name' => $value['name'] == '' ? null : $value['name'],
-                    'code' => $this->getNumberOrder(),
-                    'adresse' => $value['adresse'] == '' ? null : $value['adresse'],
-                    'phone' => $value['phone'] == '' ? null : $value['phone'],
-                    'email' => $value['email'] == '' ? null : $value['email'],
-                    'country' => $value['country'] == '' ? null : $value['country'],
-                    'city' => $value['city'] == '' ? null : $value['city'],
-                ]);
+
+                $input['name'] = $value['name'];
+
+                $validator = Validator::make($input, $rules);
+                if (!$validator->fails()) {
+
+                    Provider::create([
+                        'name' => $value['name'],
+                        'code' => $this->getNumberOrder(),
+                        'adresse' => $value['adresse'] == '' ? null : $value['adresse'],
+                        'phone' => $value['phone'] == '' ? null : $value['phone'],
+                        'email' => $value['email'] == '' ? null : $value['email'],
+                        'country' => $value['country'] == '' ? null : $value['country'],
+                        'city' => $value['city'] == '' ? null : $value['city'],
+                        'tax_number' => $value['tax_number'] == '' ? null : $value['tax_number'],
+                    ]);
+                }
+                
             }
 
             return response()->json([
                 'status' => true,
             ], 200);
         }
+
+    }
+
+
+    //------------- pay_supplier_due -------------\\
+
+    public function pay_supplier_due(Request $request)
+    {
+        $this->authorizeForUser($request->user('api'), 'pay_supplier_due', Provider::class);
+       
+        if($request['amount'] > 0){
+           $provider_purchases_due = Purchase::where('deleted_at', '=', null)
+           ->where([
+               ['payment_statut', '!=', 'paid'],
+               ['provider_id', $request->provider_id]
+           ])->get();
+
+           $paid_amount_total = $request->amount;
+
+           foreach($provider_purchases_due as $key => $provider_purchase){
+               if($paid_amount_total == 0)
+               break;
+               $due = $provider_purchase->GrandTotal  - $provider_purchase->paid_amount;
+
+               if($paid_amount_total >= $due){
+                   $amount = $due;
+                   $payment_status = 'paid';
+               }else{
+                   $amount = $paid_amount_total;
+                   $payment_status = 'partial';
+               }
+
+               $payment_purchase = new PaymentPurchase();
+               $payment_purchase->purchase_id = $provider_purchase->id;
+               $payment_purchase->Ref = app('App\Http\Controllers\PaymentPurchasesController')->getNumberOrder();
+               $payment_purchase->date = Carbon::now();
+               $payment_purchase->Reglement = $request['Reglement'];
+               $payment_purchase->montant = $amount;
+               $payment_purchase->change = 0;
+               $payment_purchase->notes = $request['notes'];
+               $payment_purchase->user_id = Auth::user()->id;
+               $payment_purchase->save();
+
+               $provider_purchase->paid_amount += $amount;
+               $provider_purchase->payment_statut = $payment_status;
+               $provider_purchase->save();
+
+               $paid_amount_total -= $amount;
+           }
+       }
+       
+        return response()->json(['success' => true]);
+
+    }
+
+     //------------- pay_purchase_return_due -------------\\
+
+    public function pay_purchase_return_due(Request $request)
+    {
+        $this->authorizeForUser($request->user('api'), 'pay_purchase_return_due', Provider::class);
+        
+        if($request['amount'] > 0){
+            $supplier_purchase_return_due = PurchaseReturn::where('deleted_at', '=', null)
+            ->where([
+                ['payment_statut', '!=', 'paid'],
+                ['provider_id', $request->provider_id]
+            ])->get();
+
+            $paid_amount_total = $request->amount;
+
+            foreach($supplier_purchase_return_due as $key => $supplier_purchase_return){
+                if($paid_amount_total == 0)
+                break;
+                $due = $supplier_purchase_return->GrandTotal  - $supplier_purchase_return->paid_amount;
+
+                if($paid_amount_total >= $due){
+                    $amount = $due;
+                    $payment_status = 'paid';
+                }else{
+                    $amount = $paid_amount_total;
+                    $payment_status = 'partial';
+                }
+
+                $payment_purchase_return = new PaymentPurchaseReturns();
+                $payment_purchase_return->purchase_return_id = $supplier_purchase_return->id;
+                $payment_purchase_return->Ref = app('App\Http\Controllers\PaymentPurchaseReturnsController')->getNumberOrder();
+                $payment_purchase_return->date = Carbon::now();
+                $payment_purchase_return->Reglement = $request['Reglement'];
+                $payment_purchase_return->montant = $amount;
+                $payment_purchase_return->change = 0;
+                $payment_purchase_return->notes = $request['notes'];
+                $payment_purchase_return->user_id = Auth::user()->id;
+                $payment_purchase_return->save();
+
+                $supplier_purchase_return->paid_amount += $amount;
+                $supplier_purchase_return->payment_statut = $payment_status;
+                $supplier_purchase_return->save();
+
+                $paid_amount_total -= $amount;
+            }
+        }
+        
+        return response()->json(['success' => true]);
 
     }
 

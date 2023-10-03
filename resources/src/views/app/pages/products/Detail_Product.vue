@@ -201,7 +201,7 @@ export default {
     showDetails() {
       let id = this.$route.params.id;
       axios
-        .get(`Products/Detail/${id}`)
+        .get(`get_product_detail/${id}`)
         .then(response => {
           this.product = response.data;
           this.isLoading = false;

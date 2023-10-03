@@ -10,7 +10,7 @@
             v-if="currentUserPermissions && currentUserPermissions.includes('Purchase_Returns_edit')"
             title="Edit"
             class="btn btn-success btn-icon ripple btn-sm"
-            :to="{ name:'edit_purchase_return', params: { id: $route.params.id } }"
+            :to="'/app/purchase_return/edit/'+$route.params.id+'/'+purchase_return.purchase_id"
           >
             <i class="i-Edit"></i>
             <span>{{$t('EditReturn')}}</span>
@@ -66,6 +66,7 @@
               <h5 class="font-weight-bold">{{$t('Return_Info')}}</h5>
 
               <div>{{$t('Reference')}} : {{purchase_return.Ref}}</div>
+              <div>{{$t('Purchase_Ref')}} : {{purchase_return.purchase_ref}}</div>
               <div>
                 {{$t('Status')}} :
                 <span
@@ -91,14 +92,15 @@
           </b-row>
           <b-row class="mt-3">
             <b-col md="12">
-              <h5 class="font-weight-bold">{{$t('Order_Summary')}}</h5>
+              <h5 class="font-weight-bold">{{$t('list_product_returns')}}</h5>
+              <div class="alert alert-danger">{{$t('products_refunded_alert')}}</div>
               <div class="table-responsive">
                 <table class="table table-hover table-md">
                   <thead class="bg-gray-300">
                     <tr>
                       <th scope="col">{{$t('ProductName')}}</th>
                       <th scope="col">{{$t('Net_Unit_Cost')}}</th>
-                      <th scope="col">{{$t('Quantity')}}</th>
+                      <th scope="col">{{$t('Qty_return')}}</th>
                       <th scope="col">{{$t('Unitcost')}}</th>
                       <th scope="col">{{$t('Discount')}}</th>
                       <th scope="col">{{$t('Tax')}}</th>
@@ -107,7 +109,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="detail in details">
-                      <td>{{detail.code}} ({{detail.name}})</td>
+                      <td><span>{{detail.code}} ({{detail.name}})</span>
+                        <p v-show="detail.is_imei && detail.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail.imei_number}}</p>
+                      </td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.Net_cost ,3)}}</td>
                       <td>{{formatNumber(detail.quantity,2)}} {{detail.unit_purchase}}</td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.cost,2)}}</td>
@@ -225,7 +229,7 @@ export default {
       let id = this.$route.params.id;
     
        axios
-        .get(`Return_Purchase_PDF/${id}`, {
+        .get(`return_purchase_pdf/${id}`, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"

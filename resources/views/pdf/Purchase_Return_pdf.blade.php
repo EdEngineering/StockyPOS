@@ -14,11 +14,12 @@
          <div id="company">
             <div><strong> Date: </strong>{{$return_purchase['date']}}</div>
             <div><strong> Number: </strong> {{$return_purchase['Ref']}}</div>
+            <div><strong> Purchase Ref: </strong> {{$return_purchase['purchase_ref']}}</div>
             <div><strong> Status: </strong> {{$return_purchase['statut']}}</div>
             <div><strong> Payment Status: </strong> {{$return_purchase['payment_status']}}</div>
          </div>
          <div id="Title-heading">
-            Return {{$return_purchase['Ref']}}
+            Return : {{$return_purchase['Ref']}}
          </div>
          </div>
       </header>
@@ -34,10 +35,11 @@
                   <tbody>
                      <tr>
                         <td>
-                           <div><strong>Name:</strong> {{$return_purchase['supplier_name']}}</div>
-                           <div><strong>Phone:</strong> {{$return_purchase['supplier_phone']}}</div>
-                           <div><strong>Adress:</strong>   {{$return_purchase['supplier_adr']}}</div>
-                           <div><strong>Email:</strong>  {{$return_purchase['supplier_email']}}</div>
+                           <div><strong>Full Name :</strong> {{$return_purchase['supplier_name']}}</div>
+                           <div><strong>Phone :</strong> {{$return_purchase['supplier_phone']}}</div>
+                           <div><strong>Email :</strong>  {{$return_purchase['supplier_email']}}</div>
+                           <div><strong>Address :</strong>   {{$return_purchase['supplier_adr']}}</div>
+                           @if($return_purchase['supplier_tax'])<div><strong>Tax Number :</strong>  {{$return_purchase['supplier_tax']}}</div>@endif
                         </td>
                      </tr>
                   </tbody>
@@ -54,9 +56,9 @@
                      <tr>
                         <td>
                            <div id="comp">{{$setting['CompanyName']}}</div>
-                           <div><strong>Adress:</strong>  {{$setting['CompanyAdress']}}</div>
-                           <div><strong>Phone:</strong>  {{$setting['CompanyPhone']}}</div>
-                           <div><strong>Email:</strong>  {{$setting['email']}}</div>
+                           <div><strong>Phone :</strong>  {{$setting['CompanyPhone']}}</div>
+                           <div><strong>Email :</strong>  {{$setting['email']}}</div>
+                           <div><strong>Address  :</strong>  {{$setting['CompanyAdress']}}</div>
                         </td>
                      </tr>
                   </tbody>
@@ -78,7 +80,12 @@
                <tbody>
                   @foreach ($details as $detail)    
                   <tr>
-                     <td>{{$detail['code']}} ({{$detail['name']}})</td>
+                     <td>
+                        <span>{{$detail['code']}} ({{$detail['name']}})</span>
+                           @if($detail['is_imei'] && $detail['imei_number'] !==null)
+                              <p>IMEI/SN : {{$detail['imei_number']}}</p>
+                           @endif
+                     </td>
                      <td>{{$detail['cost']}} </td>
                      <td>{{$detail['quantity']}}/{{$detail['unit_purchase']}}</td>
                      <td>{{$detail['DiscountNet']}} </td>
@@ -119,7 +126,11 @@
                </tr>
             </table>
          </div>
-         <div id="signature">Signature</div>
+         <div id="signature">
+            @if($setting['is_invoice_footer'] && $setting['invoice_footer'] !==null)
+               <p>{{$setting['invoice_footer']}}</p>
+            @endif
+         </div>
       </main>
    </body>
 </html>

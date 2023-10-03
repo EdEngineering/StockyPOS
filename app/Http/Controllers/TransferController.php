@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\TransfersExport;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\product_warehouse;
@@ -18,7 +17,6 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 
 class TransferController extends BaseController
 {
@@ -96,8 +94,12 @@ class TransferController extends BaseController
 
         //get warehouses assigned to user
         $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         return response()->json([
             'totalRows' => $totalRows,
@@ -997,10 +999,14 @@ class TransferController extends BaseController
             $details[] = $data;
         }
 
-        //get warehouses assigned to user
-        $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+       //get warehouses assigned to user
+       $user_auth = auth()->user();
+       if($user_auth->is_all_warehouses){
+           $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+       }else{
+           $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+           $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+       }
 
         return response()->json([
             'details' => $details,
@@ -1079,20 +1085,18 @@ class TransferController extends BaseController
     {
         $this->authorizeForUser($request->user('api'), 'create', Transfer::class);
 
-        //get warehouses assigned to user
-        $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
-
+       //get warehouses assigned to user
+       $user_auth = auth()->user();
+       if($user_auth->is_all_warehouses){
+           $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+       }else{
+           $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+           $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+       }
+       
         return response()->json(['warehouses' => $warehouses]);
     }
 
-    //-------------- Export All Transfers to EXCEL  ---------------\\
-
-    public function exportExcel(Request $request)
-    {
-        $this->authorizeForUser($request->user('api'), 'view', Transfer::class);
-        return Excel::download(new TransfersExport, 'List_Transfers.xlsx');
-    }
+  
 
 }

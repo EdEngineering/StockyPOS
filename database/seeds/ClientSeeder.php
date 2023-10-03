@@ -24,6 +24,7 @@ class ClientSeeder extends Seeder
                 'city' => 'dhaka',
                 'phone' => '123456780',
                 'adresse' => 'N45 , Dhaka',
+                'tax_number' => NULL,
             )
             
         );

@@ -40,9 +40,16 @@
           <b-button @click="Adjustment_PDF()" size="sm" variant="outline-success m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Adjustment_Excel()" size="sm" variant="outline-danger m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+          <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="adjustments"
+              :columns="columns"
+              :file-name="'Adjustments'"
+              :file-type="'xlsx'"
+              :sheet-name="'Adjustments'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
           <router-link
             class="btn-sm btn btn-primary btn-icon m-1"
             v-if="currentUserPermissions && currentUserPermissions.includes('adjustment_add')"
@@ -281,34 +288,6 @@ export default {
       pdf.autoTable(columns, self.adjustments);
       pdf.text("Adjustment List", 40, 25);
       pdf.save("Adjustment_List.pdf");
-    },
-
-    //------------------------------------ Adjustement Excel ------------------------------\\
-    Adjustment_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("adjustments/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Adjustments.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        })
-        .catch(() => {
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
     },
 
     //---------------Get Details Adjustement ----------------------\\

@@ -24,6 +24,11 @@
         :rows="products"
         @on-page-change="onPageChange"
         @on-per-page-change="onPerPageChange"
+        @on-search="onSearch_products"
+          :search-options="{
+            placeholder: $t('Search_this_table'),
+            enabled: true,
+        }"
         :pagination-options="{
         enabled: true,
         mode: 'records',
@@ -32,14 +37,25 @@
       }"
         styleClass="mt-5 table-hover tableOne vgt-table"
       >
+      <div slot="table-actions" class="mt-2 mb-3">
+        <b-button @click="export_PDF()" size="sm" variant="outline-success ripple m-1">
+          <i class="i-File-Copy"></i> PDF
+        </b-button>
+
+         <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="products"
+              :columns="columns"
+              :file-name="'product_report'"
+              :file-type="'xlsx'"
+              :sheet-name="'product_report'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
+
+      </div>
         <template slot="table-row" slot-scope="props">
-          <div v-if="props.column.field == 'quantity'">
-            <span>{{props.row.quantity}} {{props.row.unit_product}}</span>
-          </div>
-          <div v-else-if="props.column.field == 'price'">
-            <span>{{currentUser.currency}} {{props.row.price}}</span>
-          </div>
-          <div v-else-if="props.column.field == 'total'">
+          <div v-if="props.column.field == 'total'">
             <span>{{currentUser.currency}} {{props.row.total}}</span>
           </div>
         </template>
@@ -55,6 +71,8 @@ import DateRangePicker from 'vue2-daterange-picker'
 //you need to import the CSS manually
 import 'vue2-daterange-picker/dist/vue2-daterange-picker.css'
 import moment from 'moment'
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default {
   metaInfo: {
@@ -75,6 +93,7 @@ export default {
       limit: "10",
       totalRows: "",
       products: [],
+      search_products:"",
       today_mode: true,
       startDate: "", 
       endDate: "", 
@@ -115,23 +134,8 @@ export default {
           sortable: false
         },
         {
-          label: this.$t("Price"),
-          field: "price",
-          tdClass: "text-left",
-          thClass: "text-left",
-          sortable: false
-        },
-        {
           label: this.$t("TotalSales"),
           field: "total_sales",
-          tdClass: "text-left",
-          thClass: "text-left",
-          sortable: false
-        },
-
-        {
-          label: this.$t("Quantity"),
-          field: "quantity",
           tdClass: "text-left",
           thClass: "text-left",
           sortable: false
@@ -149,6 +153,28 @@ export default {
   },
 
   methods: {
+
+     
+    onSearch_products(value) {
+      this.search_products = value.searchTerm;
+      this.Get_top_products(1);
+    },
+
+    //----------------------------------- Export PDF ------------------------------\\
+    export_PDF() {
+      var self = this;
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Product Code", dataKey: "code" },
+        { title: "Product Name", dataKey: "name" },
+        { title: "Total Sales", dataKey: "total_sales" },
+        { title: "Total Amount", dataKey: "total" },
+      ];
+      pdf.autoTable(columns, self.products);
+      pdf.text("Top Selling Products", 40, 25);
+      pdf.save("Top_Selling_Products.pdf");
+    },
+
     //---- update Params Table
     updateParams(newProps) {
       this.serverParams = Object.assign({}, this.serverParams, newProps);
@@ -210,7 +236,9 @@ export default {
             "&to=" +
             this.endDate +
             "&from=" +
-            this.startDate
+            this.startDate +
+            "&search=" +
+            this.search_products
         )
         .then(response => {
           this.products = response.data.products;

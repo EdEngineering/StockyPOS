@@ -16,7 +16,7 @@
           <div>
             <div>
               <p class="m-0">&copy; {{ new Date().getFullYear() }} {{$t('developed_by')}} {{currentUser.developed_by}}</p>
-              <p class="m-0">All rights reserved - v4.0</p>
+              <p class="m-0">All rights reserved - v4.0.5</p>
             </div>
           </div>
           <span class="flex-grow-1"></span>

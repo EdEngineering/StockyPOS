@@ -26,7 +26,7 @@
                 <div class="card-body">
                   <i class="i-Data-Upload"></i>
                   <p class="text-muted mt-2 mb-2">
-                    <span class="bold">{{infos.sales.nmbr?infos.sales.nmbr:0}}</span>
+                    <span class="bold">({{infos.sales.nmbr?infos.sales.nmbr:0}})</span>
                     {{$t('Sales')}}
                   </p>
                   <p
@@ -42,7 +42,7 @@
                 <div class="card-body">
                   <i class="i-Data-Upload"></i>
                   <p class="text-muted mt-2 mb-2">
-                    <span class="bold">{{infos.purchases.nmbr?infos.purchases.nmbr:0}}</span>
+                    <span class="bold">({{infos.purchases.nmbr?infos.purchases.nmbr:0}})</span>
                     {{$t('Purchases')}}
                   </p>
                   <p
@@ -58,7 +58,7 @@
                 <div class="card-body">
                   <i class="i-Data-Upload"></i>
                   <p class="text-muted mt-2 mb-2">
-                    <span class="bold">{{infos.returns_sales.nmbr?infos.returns_sales.nmbr:0}}</span>
+                    <span class="bold">({{infos.returns_sales.nmbr?infos.returns_sales.nmbr:0}})</span>
                     {{$t('SalesReturn')}}
                   </p>
                   <p
@@ -76,7 +76,7 @@
                   <p class="text-muted mt-2 mb-2">
                     <span
                       class="bold"
-                    >{{infos.returns_purchases.nmbr?infos.returns_purchases.nmbr:0}}</span>
+                    >({{infos.returns_purchases.nmbr?infos.returns_purchases.nmbr:0}})</span>
                     {{$t('PurchasesReturn')}}
                   </p>
                   <p
@@ -102,16 +102,15 @@
               </div>
             </b-col>
 
-            <!-- /.col -->
-            <!-- /.Profit & Loss -->
+             <!-- /.Revenue -->
             <b-col md="4" sm="12">
               <div class="card card-icon text-center mb-30">
                 <div class="card-body">
                   <i class="i-Data-Upload"></i>
-                  <p class="text-muted mt-2 mb-2">{{$t('Profit')}}</p>
+                  <p class="text-muted mt-2 mb-2">{{$t('Revenue')}}</p>
                   <p
                     class="text-primary text-24 line-height-1 m-0"
-                  >{{currentUser.currency}} {{formatNumber((infos.profit?infos.profit:0),2)}}</p>
+                  >{{currentUser.currency}} {{formatNumber((infos.total_revenue?infos.total_revenue:0),2)}}</p>
                 </div>
 
                 <div class="card-footer">
@@ -124,8 +123,66 @@
                     - (
                     <span
                       class="bold"
-                    >{{currentUser.currency}} {{formatNumber((infos.purchases.sum?infos.purchases.sum:0),2)}}</span>
-                    {{$t('Purchases')}})
+                    >{{currentUser.currency}} {{formatNumber((infos.returns_sales.sum?infos.returns_sales.sum:0),2)}}</span>
+                    {{$t('SalesReturn')}})
+              
+                  </p>
+                </div>
+              </div>
+            </b-col>
+
+            <!-- /.Profit Using FIFO METHOD -->
+            <b-col md="4" sm="12">
+              <div class="card card-icon text-center mb-30">
+                <div class="card-body">
+                  <i class="i-Data-Upload"></i>
+                  <p class="text-muted mt-2 mb-2">Profit Net (Using FIFO METHOD)</p>
+                  <p
+                    class="text-primary text-24 line-height-1 m-0"
+                  >{{currentUser.currency}} {{formatNumber((infos.profit_fifo?infos.profit_fifo:0),2)}}</p>
+                </div>
+
+                <div class="card-footer">
+                  <p>
+                    (
+                    <span
+                      class="bold"
+                    >{{currentUser.currency}} {{formatNumber((infos.sales.sum?infos.sales.sum:0),2)}}</span>
+                    {{$t('Sales')}})
+                    - (
+                    <span
+                      class="bold"
+                    >{{currentUser.currency}} {{formatNumber((infos.product_cost_fifo?infos.product_cost_fifo:0),2)}}</span>
+                    {{$t('Product_Cost')}})
+              
+                  </p>
+                </div>
+              </div>
+            </b-col>
+
+            <!-- /.Profit Using FIFO METHOD -->
+            <b-col md="4" sm="12">
+              <div class="card card-icon text-center mb-30">
+                <div class="card-body">
+                  <i class="i-Data-Upload"></i>
+                  <p class="text-muted mt-2 mb-2">Profit Net (Using Average Cost)</p>
+                  <p
+                    class="text-primary text-24 line-height-1 m-0"
+                  >{{currentUser.currency}} {{formatNumber((infos.profit_average_cost?infos.profit_average_cost:0),2)}}</p>
+                </div>
+
+                <div class="card-footer">
+                  <p>
+                    (
+                    <span
+                      class="bold"
+                    >{{currentUser.currency}} {{formatNumber((infos.sales.sum?infos.sales.sum:0),2)}}</span>
+                    {{$t('Sales')}})
+                    - (
+                    <span
+                      class="bold"
+                    >{{currentUser.currency}} {{formatNumber((infos.total_average_cost?infos.total_average_cost:0),2)}}</span>
+                    {{$t('Product_Cost')}})
               
                   </p>
                 </div>
@@ -317,7 +374,7 @@ export default {
 
       axios
         .get(
-          "report/ProfitAndLoss?to=" +
+          "report/profit_and_loss?to=" +
             this.endDate +
             "&from=" +
             this.startDate

@@ -40,9 +40,16 @@
           <b-button @click="Sales_PDF()" size="sm" variant="outline-success ripple m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Sales_Excel()" size="sm" variant="outline-danger ripple m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+          <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="sales"
+              :columns="columns"
+              :file-name="'sales'"
+              :file-type="'xlsx'"
+              :sheet-name="'sales'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
           <router-link
             class="btn-sm btn btn-primary ripple btn-icon m-1"
             v-if="currentUserPermissions && currentUserPermissions.includes('Sales_add')"
@@ -79,13 +86,31 @@
                   </b-dropdown-item>
                 </b-navbar-nav>
 
-                <b-dropdown-item
+                 <b-dropdown-item 
                   title="Edit"
-                  v-if="currentUserPermissions.includes('Sales_edit')"
+                  v-if="currentUserPermissions.includes('Sales_edit') && props.row.sale_has_return == 'no'"
                   :to="'/app/sales/edit/'+props.row.id"
                 >
                   <i class="nav-icon i-Pen-2 font-weight-bold mr-2"></i>
                   {{$t('EditSale')}}
+                </b-dropdown-item>
+
+                <b-dropdown-item
+                  title="Sell Return"
+                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'no'"
+                  :to="'/app/sales/sale_return/'+props.row.id"
+                >
+                  <i class="nav-icon i-Back font-weight-bold mr-2"></i>
+                  {{$t('Sell_Return')}}
+                </b-dropdown-item>
+
+                <b-dropdown-item
+                  title="Sell Return"
+                  v-if="currentUserPermissions.includes('Sale_Returns_add') && props.row.sale_has_return == 'yes'"
+                  :to="'/app/sale_return/edit/'+props.row.salereturn_id+'/'+props.row.id"
+                >
+                  <i class="nav-icon i-Back font-weight-bold mr-2"></i>
+                  {{$t('Sell_Return')}}
                 </b-dropdown-item>
 
                 <b-dropdown-item
@@ -103,6 +128,15 @@
                   <i class="nav-icon i-Add font-weight-bold mr-2"></i>
                   {{$t('AddPayment')}}
                 </b-dropdown-item>
+
+                <b-dropdown-item
+                  v-if="currentUserPermissions.includes('shipment')"
+                  @click="Edit_Shipment(props.row.id)"
+                >
+                  <i class="nav-icon i-Pen-2 font-weight-bold mr-2"></i>
+                  {{$t('Edit_Shipping')}}
+                </b-dropdown-item>
+
 
                 <b-dropdown-item title="Invoice" @click="Invoice_POS(props.row.id)">
                   <i class="nav-icon i-File-TXT font-weight-bold mr-2"></i>
@@ -122,7 +156,7 @@
                 <b-dropdown-item
                   title="Delete"
                   v-if="currentUserPermissions.includes('Sales_delete')"
-                  @click="Remove_Sale(props.row.id)"
+                  @click="Remove_Sale(props.row.id , props.row.sale_has_return)"
                 >
                   <i class="nav-icon i-Close-Window font-weight-bold mr-2"></i>
                   {{$t('DeleteSale')}}
@@ -153,6 +187,38 @@
             >{{$t('partial')}}</span>
             <span v-else class="badge badge-outline-warning">{{$t('Unpaid')}}</span>
           </div>
+          <div v-else-if="props.column.field == 'shipping_status'">
+            <span
+              v-if="props.row.shipping_status == 'ordered'"
+              class="badge badge-outline-warning"
+            >{{$t('Ordered')}}</span>
+
+            <span
+              v-else-if="props.row.shipping_status == 'packed'"
+              class="badge badge-outline-info"
+            >{{$t('Packed')}}</span>
+
+            <span
+              v-else-if="props.row.shipping_status == 'shipped'"
+              class="badge badge-outline-secondary"
+            >{{$t('Shipped')}}</span>
+
+             <span
+              v-else-if="props.row.shipping_status == 'delivered'"
+              class="badge badge-outline-success"
+            >{{$t('Delivered')}}</span>
+
+            <span v-else-if="props.row.shipping_status == 'cancelled'" class="badge badge-outline-danger">{{$t('Cancelled')}}</span>
+          </div>
+           <div v-else-if="props.column.field == 'Ref'">
+              <router-link
+                :to="'/app/sales/detail/'+props.row.id"
+              >
+                <span class="ul-btn__text ml-1">{{props.row.Ref}}</span>
+              </router-link> <br>
+              <small v-if="props.row.sale_has_return == 'yes'"><i class="text-15 text-danger i-Back"></i></small>
+              
+            </div>
         </template>
       </vue-good-table>
     </div>
@@ -228,6 +294,25 @@
                         {label: 'Paid', value: 'paid'},
                         {label: 'partial', value: 'partial'},
                         {label: 'UnPaid', value: 'unpaid'},
+                      ]"
+              ></v-select>
+            </b-form-group>
+          </b-col>
+
+           <!-- Shipping Status  -->
+          <b-col md="12">
+            <b-form-group :label="$t('Shipping_status')">
+              <v-select
+                v-model="Filter_shipping"
+                :reduce="label => label.value"
+                :placeholder="$t('Choose_Status')"
+                :options="
+                      [
+                        {label: 'Ordered', value: 'ordered'},
+                        {label: 'Packed', value: 'packed'},
+                        {label: 'Shipped', value: 'shipped'},
+                        {label: 'Delivered', value: 'delivered'},
+                        {label: 'Cancelled', value: 'cancelled'},
                       ]"
               ></v-select>
             </b-form-group>
@@ -337,7 +422,7 @@
         <b-form @submit.prevent="Submit_Payment">
           <b-row>
             <!-- date -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <validation-provider
                 name="date"
                 :rules="{ required: true}"
@@ -357,7 +442,7 @@
             </b-col>
 
             <!-- Reference  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <b-form-group :label="$t('Reference')">
                 <b-form-input
                   disabled="disabled"
@@ -368,8 +453,36 @@
               </b-form-group>
             </b-col>
 
+             <!-- Payment choice -->
+            <b-col lg="4" md="12" sm="12">
+              <validation-provider name="Payment choice" :rules="{ required: true}">
+                <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice')">
+                  <v-select
+                    :class="{'is-invalid': !!errors.length}"
+                    :state="errors[0] ? false : (valid ? true : null)"
+                    v-model="payment.Reglement"
+                    @input="Selected_PaymentMethod"
+                    :disabled="EditPaiementMode && payment.Reglement == 'credit card'"
+                    :reduce="label => label.value"
+                    :placeholder="$t('PleaseSelect')"
+                    :options="
+                          [
+                          {label: 'Cash', value: 'Cash'},
+                          {label: 'credit card', value: 'credit card'},
+                          {label: 'TPE', value: 'tpe'},
+                          {label: 'cheque', value: 'cheque'},
+                          {label: 'Western Union', value: 'Western Union'},
+                          {label: 'bank transfer', value: 'bank transfer'},
+                          {label: 'other', value: 'other'},
+                          ]"
+                  ></v-select>
+                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
             <!-- Received  Amount  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
                 <validation-provider
                   name="Received Amount"
                   :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -392,7 +505,7 @@
             </b-col>
 
             <!-- Paying Amount  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <validation-provider
                 name="Amount"
                 :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -413,39 +526,14 @@
             </b-col>
 
             <!-- change Amount  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <label>{{$t('Change')}} :</label>
               <p
                 class="change_amount"
               >{{parseFloat(payment.received_amount - payment.montant).toFixed(2)}}</p>
             </b-col>
 
-            <!-- Payment choice -->
-            <b-col lg="6" md="12" sm="12">
-              <validation-provider name="Payment choice" :rules="{ required: true}">
-                <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice')">
-                  <v-select
-                    :class="{'is-invalid': !!errors.length}"
-                    :state="errors[0] ? false : (valid ? true : null)"
-                    v-model="payment.Reglement"
-                    @input="Selected_PaymentMethod"
-                    :disabled="EditPaiementMode && payment.Reglement == 'credit card'"
-                    :reduce="label => label.value"
-                    :placeholder="$t('PleaseSelect')"
-                    :options="
-                          [
-                          {label: 'Cash', value: 'Cash'},
-                          {label: 'credit card', value: 'credit card'},
-                          {label: 'cheque', value: 'cheque'},
-                          {label: 'Western Union', value: 'Western Union'},
-                          {label: 'bank transfer', value: 'bank transfer'},
-                          {label: 'other', value: 'other'},
-                          ]"
-                  ></v-select>
-                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
-                </b-form-group>
-              </validation-provider>
-            </b-col>
+           
 
             <b-col md="12" v-if="payment.Reglement == 'credit card'">
               <form id="payment-form">
@@ -482,6 +570,82 @@
       </b-modal>
     </validation-observer>
 
+     <!-- Modal Edit Shipment -->
+    <validation-observer ref="shipment_ref">
+      <b-modal hide-footer size="md" id="modal_shipment" :title="$t('Edit')">
+        <b-form @submit.prevent="Submit_Shipment">
+          <b-row>
+            <!-- Status  -->
+            <b-col md="12">
+              <validation-provider name="Status" :rules="{ required: true}">
+                <b-form-group slot-scope="{ valid, errors }" :label="$t('Status') + ' ' + '*'">
+                  <v-select
+                    :class="{'is-invalid': !!errors.length}"
+                    :state="errors[0] ? false : (valid ? true : null)"
+                    v-model="shipment.status"
+                    :reduce="label => label.value"
+                    :placeholder="$t('Choose_Status')"
+                    :options="
+                                [
+                                  {label: 'Ordered', value: 'ordered'},
+                                  {label: 'Packed', value: 'packed'},
+                                  {label: 'Shipped', value: 'shipped'},
+                                  {label: 'Delivered', value: 'delivered'},
+                                  {label: 'Cancelled', value: 'cancelled'},
+                                ]"
+                  ></v-select>
+                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group :label="$t('delivered_to')">
+                <b-form-input
+                  label="delivered_to"
+                  v-model="shipment.delivered_to"
+                  :placeholder="$t('delivered_to')"
+                ></b-form-input>
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group :label="$t('Adress')">
+                <textarea
+                  v-model="shipment.shipping_address"
+                  rows="4"
+                  class="form-control"
+                  :placeholder="$t('Enter_Address')"
+                ></textarea>
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group :label="$t('Please_provide_any_details')">
+                <textarea
+                  v-model="shipment.shipping_details"
+                  rows="4"
+                  class="form-control"
+                  :placeholder="$t('Please_provide_any_details')"
+                ></textarea>
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12" class="mt-3">
+              <b-button
+                variant="primary"
+                type="submit"
+                :disabled="Submit_Processing_shipment"
+              >{{$t('submit')}}</b-button>
+              <div v-once class="typo__p" v-if="Submit_Processing_shipment">
+                <div class="spinner sm spinner-primary mt-3"></div>
+              </div>
+            </b-col>
+          </b-row>
+        </b-form>
+      </b-modal>
+    </validation-observer>
+
     <!-- Modal Show Invoice POS-->
     <b-modal hide-footer size="sm" scrollable id="Show_invoice" :title="$t('Invoice_POS')">
         <div id="invoice-POS">
@@ -501,19 +665,30 @@
           <table>
             <tbody>
               <tr v-for="detail_invoice in invoice_pos.details">
-                <td colspan="3"><span>{{detail_invoice.name}} <br> {{formatNumber(detail_invoice.quantity,2)}} {{detail_invoice.unit_sale}} x {{formatNumber(detail_invoice.total/detail_invoice.quantity,2)}}</span></td>
+                <td colspan="3">
+                  {{detail_invoice.name}}
+                  <br v-show="detail_invoice.is_imei && detail_invoice.imei_number !==null">
+                  <span v-show="detail_invoice.is_imei && detail_invoice.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail_invoice.imei_number}}</span>
+                  <br>
+                  <span>{{formatNumber(detail_invoice.quantity,2)}} {{detail_invoice.unit_sale}} x {{formatNumber(detail_invoice.total/detail_invoice.quantity,2)}}</span>
+                </td>
                 <td style="text-align:right;vertical-align:bottom">{{formatNumber(detail_invoice.total,2)}}</td>
               </tr>
 
 
-              <tr style="margin-top:10px">
+              <tr style="margin-top:10px" v-show="pos_settings.show_discount">
                 <td colspan="3" class="total">{{$t('OrderTax')}}</td>
                 <td style="text-align:right;" class="total">{{invoice_pos.symbol}} {{formatNumber(invoice_pos.sale.taxe ,2)}} ({{formatNumber(invoice_pos.sale.tax_rate,2)}} %)</td>
               </tr>
 
-              <tr style="margin-top:10px">
+              <tr style="margin-top:10px" v-show="pos_settings.show_discount">
                 <td colspan="3" class="total">{{$t('Discount')}}</td>
                 <td style="text-align:right;" class="total">{{invoice_pos.symbol}} {{formatNumber(invoice_pos.sale.discount ,2)}}</td>
+              </tr>
+
+              <tr style="margin-top:10px" v-show="pos_settings.show_discount">
+                <td colspan="3" class="total">{{$t('Shipping')}}</td>
+                <td style="text-align:right;" class="total">{{invoice_pos.symbol}} {{formatNumber(invoice_pos.sale.shipping ,2)}}</td>
               </tr>
 
               <tr style="margin-top:10px">
@@ -617,6 +792,7 @@ export default {
       cardElement: {},
       pos_settings:{},
       paymentProcessing: false,
+      Submit_Processing_shipment:false,
       isLoading: true,
       serverParams: {
         sort: {
@@ -638,8 +814,10 @@ export default {
       Filter_status: "",
       Filter_Payment: "",
       Filter_warehouse: "",
+      Filter_shipping:"",
       customers: [],
       warehouses: [],
+      shipment: {},
       sales: [],
       sale_due:'',
       due:0,
@@ -738,23 +916,33 @@ export default {
           label: this.$t("Total"),
           field: "GrandTotal",
           tdClass: "text-left",
-          thClass: "text-left"
+          thClass: "text-left",
+          sortable: false
         },
         {
           label: this.$t("Paid"),
           field: "paid_amount",
           tdClass: "text-left",
-          thClass: "text-left"
+          thClass: "text-left",
+          sortable: false
         },
         {
           label: this.$t("Due"),
           field: "due",
           tdClass: "text-left",
-          thClass: "text-left"
+          thClass: "text-left",
+          sortable: false
         },
         {
           label: this.$t("PaymentStatus"),
           field: "payment_status",
+          html: true,
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
+        {
+          label: this.$t("Shipping_status"),
+          field: "shipping_status",
           html: true,
           tdClass: "text-left",
           thClass: "text-left"
@@ -796,7 +984,7 @@ export default {
       }
     },
 
-      //------------------------------ Print -------------------------\\
+    //------------------------------ Print -------------------------\\
     print_it() {
       var divContents = document.getElementById("invoice-POS").innerHTML;
       var a = window.open("", "", "height=500, width=500");
@@ -807,12 +995,18 @@ export default {
       a.document.write(divContents);
       a.document.write("</body></html>");
       a.document.close();
-      a.print();
+      
+      setTimeout(() => {
+         a.print();
+      }, 1000);
     },
+
+
     //---- update Params Table
     updateParams(newProps) {
       this.serverParams = Object.assign({}, this.serverParams, newProps);
     },
+
     //---- Event Page Change
     onPageChange({ currentPage }) {
       if (this.serverParams.page !== currentPage) {
@@ -820,6 +1014,7 @@ export default {
         this.Get_Sales(currentPage);
       }
     },
+
     //---- Event Per Page Change
     onPerPageChange({ currentPerPage }) {
       if (this.limit !== currentPerPage) {
@@ -828,6 +1023,7 @@ export default {
         this.Get_Sales(1);
       }
     },
+
     //---- Event Select Rows
     selectionChanged({ selectedRows }) {
       this.selectedIds = [];
@@ -835,6 +1031,7 @@ export default {
         this.selectedIds.push(row.id);
       });
     },
+
     //---- Event Sort change
     onSortChange(params) {
       let field = "";
@@ -855,6 +1052,8 @@ export default {
       });
       this.Get_Sales(this.serverParams.page);
     },
+
+    
     onSearch(value) {
       this.search = value.searchTerm;
       this.Get_Sales(this.serverParams.page);
@@ -896,7 +1095,11 @@ export default {
     Submit_Payment() {
       this.$refs.Add_payment.validate().then(success => {
         if (!success) {
-          return;
+          this.makeToast(
+            "danger",
+            this.$t("Please_fill_the_form_correctly"),
+            this.$t("Failed")
+          );
         } else if (this.payment.montant > this.payment.received_amount) {
           this.makeToast(
             "warning",
@@ -941,9 +1144,11 @@ export default {
       this.Filter_Client = "";
       this.Filter_status = "";
       this.Filter_Payment = "";
+      this.Filter_shipping = "";
       this.Filter_Ref = "";
       this.Filter_date = "";
-      (this.Filter_warehouse = ""), this.Get_Sales(this.serverParams.page);
+      this.Filter_warehouse = "";
+      this.Get_Sales(this.serverParams.page);
     },
     //------------------------------Formetted Numbers -------------------------\\
     formatNumber(number, dec) {
@@ -965,12 +1170,14 @@ export default {
       let columns = [
         { title: "Ref", dataKey: "Ref" },
         { title: "Client", dataKey: "client_name" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
         { title: "Created_by", dataKey: "created_by" },
         { title: "Status", dataKey: "statut" },
         { title: "Total", dataKey: "GrandTotal" },
         { title: "Paid", dataKey: "paid_amount" },
         { title: "Due", dataKey: "due" },
-        { title: "Status Payment", dataKey: "payment_status" }
+        { title: "Status Payment", dataKey: "payment_status" },
+        { title: "Shipping Status", dataKey: "shipping_status" }
       ];
       pdf.autoTable(columns, self.sales);
       pdf.text("Sale List", 40, 25);
@@ -982,7 +1189,7 @@ export default {
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .get("Sales/Print_Invoice/" + id)
+        .get("sales_print_invoice/" + id)
         .then(response => {
           this.invoice_pos = response.data;
           this.payments = response.data.payments;
@@ -992,47 +1199,25 @@ export default {
             NProgress.done();
             this.$bvModal.show("Show_invoice");
           }, 500);
-          setTimeout(() => this.print_it(), 1000);
-        })
-        .catch(() => {
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
-    },
-    //-------------------------------- Sales Excel ------------------------------\\
-    Sales_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("sales/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
+
+          if(response.data.pos_settings.is_printable){
+            setTimeout(() => this.print_it(), 1000);
           }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Sales.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
+
         })
         .catch(() => {
           // Complete the animation of the  progress bar.
           setTimeout(() => NProgress.done(), 500);
         });
     },
+
     //-----------------------------  Invoice PDF ------------------------------\\
     Invoice_PDF(sale, id) {
       // Start the progress bar.
       NProgress.start();
       NProgress.set(0.1);
        axios
-        .get("Sale_PDF/" + id, {
+        .get("sale_pdf/" + id, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -1060,7 +1245,7 @@ export default {
       NProgress.set(0.1);
      
       axios
-        .get("payment_Sale_PDF/" + id, {
+        .get("payment_sale_pdf/" + id, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -1092,6 +1277,8 @@ export default {
         this.Filter_status = "";
       } else if (this.Filter_Payment === null) {
         this.Filter_Payment = "";
+      }else if (this.Filter_shipping === null) {
+        this.Filter_shipping = "";
       }
     },
     //----------------------------------------- Get all Sales ------------------------------\\
@@ -1116,6 +1303,8 @@ export default {
             this.Filter_warehouse +
             "&payment_statut=" +
             this.Filter_Payment +
+            "&shipping_status=" +
+            this.Filter_shipping +
             "&SortField=" +
             this.serverParams.sort.field +
             "&SortType=" +
@@ -1150,7 +1339,7 @@ export default {
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .post("payment/sale/send/sms", {
+        .post("payment_sale_send_sms", {
           id: payment.id,
         })
         .then(response => {
@@ -1183,7 +1372,7 @@ export default {
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .post("payment/sale/send/email", {
+        .post("payment_sale_send_email", {
           id: this.emailPayment.id,
           to: this.emailPayment.to,
           client_name: this.emailPayment.client_name,
@@ -1216,7 +1405,7 @@ export default {
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .post("sales/send/email", {
+        .post("sales_send_email", {
           id: id,
           to: this.email.to,
           client_name: this.email.client_name,
@@ -1239,7 +1428,7 @@ export default {
     },
     Number_Order_Payment() {
       axios
-        .get("payment/sale/Number/Order")
+        .get("payment_sale_get_number")
         .then(({ data }) => (this.payment.Ref = data));
     },
     //----------------------------------- New Payment Sale ------------------------------\\
@@ -1320,7 +1509,7 @@ export default {
         this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
       } else {
         axios
-          .post("payment/sale", {
+          .post("payment_sale", {
             sale_id: this.sale.id,
             client_email: this.sale.client_email,
             client_id: this.sale.client_id,
@@ -1360,7 +1549,7 @@ export default {
         this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
       } else {
         axios
-          .put("payment/sale/" + this.payment.id, {
+          .put("payment_sale/" + this.payment.id, {
             sale_id: this.sale.id,
             client_email: this.sale.client_email,
             client_id: this.sale.client_id,
@@ -1404,7 +1593,7 @@ export default {
           }
         }else{
         axios
-          .post("payment/sale", {
+          .post("payment_sale", {
             sale_id: this.sale.id,
             date: this.payment.date,
             montant: parseFloat(this.payment.montant).toFixed(2),
@@ -1443,7 +1632,7 @@ export default {
           }
         }else{
         axios
-          .put("payment/sale/" + this.payment.id, {
+          .put("payment_sale/" + this.payment.id, {
             sale_id: this.sale.id,
             date: this.payment.date,
             montant: parseFloat(this.payment.montant).toFixed(2),
@@ -1484,7 +1673,7 @@ export default {
           NProgress.start();
           NProgress.set(0.1);
           axios
-            .delete("payment/sale/" + id)
+            .delete("payment_sale/" + id)
             .then(() => {
               this.$swal(
                 this.$t("Delete.Deleted"),
@@ -1508,7 +1697,7 @@ export default {
     //----------------------------------------- Get Payments  -------------------------------\\
     Get_Payments(id) {
       axios
-        .get("sales/payments/" + id)
+        .get("get_payments_by_sale/" + id)
         .then(response => {
           this.payments = response.data.payments;
           this.sale_due = response.data.due;
@@ -1537,43 +1726,134 @@ export default {
         notes: ""
       };
     },
-    //------------------------------------------ Remove Sale ------------------------------\\
-    Remove_Sale(id) {
-      this.$swal({
-        title: this.$t("Delete.Title"),
-        text: this.$t("Delete.Text"),
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        cancelButtonText: this.$t("Delete.cancelButtonText"),
-        confirmButtonText: this.$t("Delete.confirmButtonText")
-      }).then(result => {
-        if (result.value) {
-          // Start the progress bar.
-          NProgress.start();
-          NProgress.set(0.1);
-          axios
-            .delete("sales/" + id)
-            .then(() => {
-              this.$swal(
-                this.$t("Delete.Deleted"),
-                this.$t("Delete.SaleDeleted"),
-                "success"
-              );
-              Fire.$emit("Delete_sale");
+
+     //---------------------- Get_Data_Create  ------------------------------\\
+
+      Get_shipment_by_sale(sale_id) {
+        axios
+            .get("/shipments/" + sale_id)
+            .then(response => {
+                this.shipment   = response.data.shipment;
+
+                 setTimeout(() => {
+                    NProgress.done();
+                    this.$bvModal.show("modal_shipment");
+                }, 1000);
             })
-            .catch(() => {
-              // Complete the animation of the  progress bar.
-              setTimeout(() => NProgress.done(), 500);
-              this.$swal(
-                this.$t("Delete.Failed"),
-                this.$t("Delete.Therewassomethingwronge"),
-                "warning"
-              );
+            .catch(error => {
+              NProgress.done();
+                
             });
+    },
+
+      //------------- Submit Validation Edit shipment
+      Submit_Shipment() {
+      this.$refs.shipment_ref.validate().then(success => {
+        if (!success) {
+          this.makeToast(
+            "danger",
+            this.$t("Please_fill_the_form_correctly"),
+            this.$t("Failed")
+          );
+        } else {
+          this.Update_Shipment();
         }
       });
+    },
+
+      //----------------------- Update_Shipment ---------------------------\\
+    Update_Shipment() {
+      var self = this;
+      self.Submit_Processing_shipment = true;
+      axios
+        .post("shipments", {
+          Ref: self.shipment.Ref,
+          sale_id: self.shipment.sale_id,
+          shipping_address: self.shipment.shipping_address,
+          delivered_to: self.shipment.delivered_to,
+          shipping_details: self.shipment.shipping_details,
+          status: self.shipment.status
+        })
+        .then(response => {
+          this.makeToast(
+            "success",
+            this.$t("Updated_in_successfully"),
+            this.$t("Success")
+          );
+          Fire.$emit("event_update_shipment");
+          self.Submit_Processing_shipment = false;
+        })
+        .catch(error => {
+          this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
+          self.Submit_Processing_shipment = false;
+        });
+    },
+
+
+     //------------------------------ Show Modal (Edit shipment) -------------------------------\\
+    Edit_Shipment(sale_id) {
+      NProgress.start();
+      NProgress.set(0.1);
+      this.reset_Form_shipment();
+      this.Get_shipment_by_sale(sale_id);
+    },
+
+      //-------------------------------- Reset Form -------------------------------\\
+    reset_Form_shipment() {
+      this.shipment = {
+        id: "",
+        date: "",
+        Ref: "",
+        sale_id: "",
+        attachment: "",
+        delivered_to: "",
+        shipping_address: "",
+        status: "",
+        shipping_details: ""
+      };
+    },
+
+    //------------------------------------------ Remove Sale ------------------------------\\
+    Remove_Sale(id , sale_has_return) {
+      if(sale_has_return == 'yes'){
+        this.makeToast("danger", this.$t("Return_exist_for_the_Transaction"), this.$t("Failed"));
+      }else{
+        this.$swal({
+          title: this.$t("Delete.Title"),
+          text: this.$t("Delete.Text"),
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          cancelButtonText: this.$t("Delete.cancelButtonText"),
+          confirmButtonText: this.$t("Delete.confirmButtonText")
+        }).then(result => {
+          if (result.value) {
+            // Start the progress bar.
+            NProgress.start();
+            NProgress.set(0.1);
+            axios
+              .delete("sales/" + id)
+              .then(() => {
+                this.$swal(
+                  this.$t("Delete.Deleted"),
+                  this.$t("Delete.SaleDeleted"),
+                  "success"
+                );
+                Fire.$emit("Delete_sale");
+              })
+              .catch(() => {
+                // Complete the animation of the  progress bar.
+                setTimeout(() => NProgress.done(), 500);
+                this.$swal(
+                  this.$t("Delete.Failed"),
+                  this.$t("Delete.Therewassomethingwronge"),
+                  "warning"
+                );
+              });
+          }
+        });
+      }
     },
     //---- Delete sales by selection
     delete_by_selected() {
@@ -1592,7 +1872,7 @@ export default {
           NProgress.start();
           NProgress.set(0.1);
           axios
-            .post("sales/delete/by_selection", {
+            .post("sales_delete_by_selection", {
               selectedIds: this.selectedIds
             })
             .then(() => {
@@ -1619,37 +1899,45 @@ export default {
   //----------------------------- Created function-------------------\\
   created() {
     this.Get_Sales(1);
+
     Fire.$on("Create_Facture_sale", () => {
       setTimeout(() => {
         this.Get_Sales(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
         this.$bvModal.hide("Add_Payment");
-      }, 500);
+      }, 800);
     });
     Fire.$on("Update_Facture_sale", () => {
       setTimeout(() => {
-        this.Get_Payments(this.Sale_id);
+        this.Get_Payments(this.sale.id);
         this.Get_Sales(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
         this.$bvModal.hide("Add_Payment");
-      }, 500);
+      }, 800);
     });
     Fire.$on("Delete_Facture_sale", () => {
       setTimeout(() => {
-        this.Get_Payments(this.Sale_id);
+        this.Get_Payments(this.sale.id);
         this.Get_Sales(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
-      }, 500);
+      }, 800);
     });
     Fire.$on("Delete_sale", () => {
       setTimeout(() => {
         this.Get_Sales(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
-      }, 500);
+      }, 800);
+    });
+
+     Fire.$on("event_update_shipment", () => {
+      setTimeout(() => {
+        this.Get_Sales(this.serverParams.page);
+        this.$bvModal.hide("modal_shipment");
+      }, 800);
     });
   }
 };

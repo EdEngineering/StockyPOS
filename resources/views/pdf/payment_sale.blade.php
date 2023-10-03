@@ -16,7 +16,7 @@
             <div><strong> Number: </strong> {{$payment['Ref']}}</div>
          </div>
          <div id="Title-heading">
-           Payment  {{$payment['Ref']}}
+           Payment  : {{$payment['Ref']}}
          </div>
          </div>
       </header>
@@ -80,8 +80,11 @@
             </table>
          </div>
          
-         <div id="thanks">Thank you!</div>
-         <div id="signature">Signature</div>
+         <div id="signature">
+            @if($setting['is_invoice_footer'] && $setting['invoice_footer'] !==null)
+               <p>{{$setting['invoice_footer']}}</p>
+            @endif
+         </div>
       </main>
    </body>
 </html>

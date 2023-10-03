@@ -323,7 +323,7 @@ export default {
       
       Get_employees_by_company(value) {
           axios
-          .get("/core/Get_employees_by_company?id=" + value)
+          .get("/core/get_employees_by_company?id=" + value)
           .then(({ data }) => (this.employees = data));
       },
 

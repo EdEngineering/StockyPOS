@@ -420,8 +420,71 @@ class PermissionsSeeder extends Seeder
 			'id'    => 102,
 			'name'  => 'Top_customers',
 		],
+		[
+			'id'    => 103,
+			'name'  => 'shipment',
+		],
+		[
+			'id'    => 104,
+			'name'  => 'users_report',
+		],
+		[
+			'id'    => 105,
+			'name'  => 'stock_report',
+		],
+		[
+			'id'    => 106,
+			'name'  => 'sms_settings',
+		],
+		[
+			'id'    => 107,
+			'name'  => 'pos_settings',
+		],
+		[
+			'id'    => 108,
+			'name'  => 'payment_gateway',
+		],
+		[
+			'id'    => 109,
+			'name'  => 'mail_settings',
+		],
+		[
+			'id'    => 110,
+			'name'  => 'dashboard',
+		],
+		[
+			'id'    => 111,
+			'name'  => 'pay_due',
+		],
+		[
+			'id'    => 112,
+			'name'  => 'pay_sale_return_due',
+		],
+		[
+			'id'    => 113,
+			'name'  => 'pay_supplier_due',
+		],
+		[
+			'id'    => 114,
+			'name'  => 'pay_purchase_return_due',
+		],
+		[
+			'id'    => 115,
+			'name'  => 'product_report',
+		],
+		[
+			'id'    => 116,
+			'name'  => 'product_sales_report',
+		],
+		[
+			'id'    => 117,
+			'name'  => 'product_purchases_report',
+		],
 		
 		)
 	);
-    }
+	}
+	
+
+	
 }

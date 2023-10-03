@@ -1,3 +1,32 @@
+@media print { 
+
+  .change{
+    font-size: 10px!important;
+  }
+
+  * {
+    font-size: 12px;
+    line-height: 18px;   
+  }
+
+  body{
+    margin: 0.5cm;
+    margin-bottom:1.6cm;
+  }
+
+  td,th {padding: 1px 0;}
+
+  #invoice-POS table tr{
+    border-bottom: 2px dotted #05070b;
+  }
+ 
+
+  @page {
+    margin: 0;
+  }
+
+}
+
 .pos_page{
   position: absolute;
   top: 0;
@@ -115,14 +144,9 @@ tr {border-bottom: 2px dotted #05070b;}
 table {width: 100%;}
 tfoot tr th:first-child {text-align: left;}
 
-/* .table-bordered th, .table-bordered td {
-  border: 1px solid #D1D5DB;
-} */
 .total{
   font-weight: bold;
   font-size: 12px;
-  /* text-transform: uppercase; */
-  /* height: 36px; */
 }
 
 
@@ -138,47 +162,6 @@ tfoot tr th:first-child {text-align: left;}
 #invoice-POS{
   max-width:400px;
   margin:0px auto;
-}
-
-@media print { 
-
-  .change{
-    font-size: 10px!important;
-  }
-
-  * {
-    font-size: 12px;
-    line-height: 18px;   
-  }
-
-  body{
-    margin: 0.5cm;
-    margin-bottom:1.6cm;
-  }
-
-  td,th {padding: 1px 0;}
-
-  /* .table_data tr{
-    border-bottom: 2px dotted #05070b;
-  } */
-
-  #invoice-POS table tr{
-    border-bottom: 2px dotted #05070b;
-  }
- 
-
-  @page {
-    margin: 0;
-    }
-   
-  tbody::after {
-    content: '';
-    display: block;
-    page-break-after: always;
-    page-break-inside: always;
-    page-break-before: avoid; 
-
-  }
 }
   
 

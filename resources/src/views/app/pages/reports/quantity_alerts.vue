@@ -32,6 +32,23 @@
         </b-form-group>
       </div>
 
+      <div slot="table-actions" class="mt-2 mb-3">
+        
+          <b-button @click="stock_alert_PDF()" size="sm" variant="outline-success ripple m-1">
+            <i class="i-File-Copy"></i> PDF
+          </b-button>
+           <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="products"
+              :columns="columns"
+              :file-name="'Alerts_report'"
+              :file-type="'xlsx'"
+              :sheet-name="'Alerts_report'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
+        </div>
+
       <template slot="table-row" slot-scope="props">
         <div v-if="props.column.field == 'stock_alert'">
           <span class="badge badge-outline-danger">{{props.row.stock_alert}}</span>
@@ -44,6 +61,8 @@
 
 <script>
 import NProgress from "nprogress";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default {
   metaInfo: {
@@ -111,6 +130,25 @@ export default {
   },
 
   methods: {
+
+      //----------------------------------- Sales PDF ------------------------------\\
+    stock_alert_PDF() {
+      var self = this;
+
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Code", dataKey: "code" },
+        { title: "name", dataKey: "name" },
+        { title: "Warehouse", dataKey: "warehouse" },
+        { title: "quantity", dataKey: "quantity" },
+        { title: "Stock Alert", dataKey: "stock_alert" },
+      ];
+      pdf.autoTable(columns, self.products);
+      pdf.text("Stock Alert report", 40, 25);
+      pdf.save("Stock_alert_report.pdf");
+    },
+
+
     //---- update Params Table
     updateParams(newProps) {
       this.serverParams = Object.assign({}, this.serverParams, newProps);
@@ -148,7 +186,7 @@ export default {
       NProgress.set(0.1);
       axios
         .get(
-          "Products/Stock/Alerts?page=" +
+          "get_products_stock_alerts?page=" +
             page +
             "&warehouse=" +
             this.warehouse_id +

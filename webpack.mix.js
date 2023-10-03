@@ -13,28 +13,22 @@ const mix = require('laravel-mix');
  */
 
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
-// const TargetsPlugin = require("targets-webpack-plugin");
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 
 mix.js('resources/src/main.js', 'public').js('resources/src/login.js', 'public')
-    .sass('resources/src/assets/styles/sass/globals/globals.scss', 'public/css')
     .vue();
 
     mix.webpackConfig({
         output: {
           
             filename:'js/[name].min.js',
-            chunkFilename: 'js/bundle/[name].js',
+            chunkFilename: 'js/bundle/[name].[hash].js',
           },
         plugins: [
             new MomentLocalesPlugin(),
-            //  new TargetsPlugin({
-            //     browsers: [
-            //         "> 1%",
-            //         "last 2 versions",
-            //         "not ie <= 8",
-            //         "chrome >= 41",
-            //         "IE 11"]
-            // }),
+            new CleanWebpackPlugin({
+                cleanOnceBeforeBuildPatterns: ['./js/*']
+              }),
         ]
     });

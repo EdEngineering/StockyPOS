@@ -15,7 +15,7 @@ class AddSaleUnitIdToSaleDetails extends Migration
     {
         Schema::table('sale_details', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->integer('sale_unit_id')->nullable()->after('price')->index('sales_sale_unit_id');
+            $table->integer('sale_unit_id')->nullable()->after('price');
             $table->foreign('sale_unit_id', 'sales_sale_unit_id')->references('id')->on('units')->onUpdate('RESTRICT')->onDelete('RESTRICT');
 
         });

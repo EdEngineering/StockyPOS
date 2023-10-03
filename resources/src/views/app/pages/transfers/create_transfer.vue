@@ -558,10 +558,10 @@ export default {
       });
     },
 
-     //---------------------- Get_sales_units ------------------------------\\
-    Get_Purchases_units(value) {
+     //---------------------- get_units ------------------------------\\
+    get_units(value) {
       axios
-        .get("Get_sales_units?id=" + value)
+        .get("get_units?id=" + value)
         .then(({ data }) => (this.units = data));
     },
 
@@ -569,7 +569,7 @@ export default {
     Modal_Updat_Detail(detail) {
       this.detail = {};
       this.detail.name = detail.name;
-      this.Get_Purchases_units(detail.product_id);
+      this.get_units(detail.product_id);
       this.detail.detail_id = detail.detail_id;
       this.detail.purchase_unit_id = detail.purchase_unit_id;
       this.detail.Unit_cost = detail.Unit_cost;
@@ -991,7 +991,7 @@ export default {
         NProgress.start();
         NProgress.set(0.1);
       axios
-        .get("Products/Warehouse/" + id + "?stock=" + 1)
+        .get("get_Products_by_warehouse/" + id + "?stock=" + 1)
          .then(response => {
             this.products = response.data;
              NProgress.done();
@@ -1004,7 +1004,7 @@ export default {
     //---------------------------------Get Product Details ------------------------\\
 
     Get_Product_Details(product_id) {
-      axios.get("Products/" + product_id).then(response => {
+      axios.get("products/" + product_id).then(response => {
         this.product.discount = 0;
         this.product.DiscountNet = 0;
         this.product.discount_Method = "2";

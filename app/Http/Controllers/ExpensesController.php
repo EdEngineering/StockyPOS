@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\UserWarehouse;
-use App\Exports\ExpenseExport;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Role;
@@ -13,7 +12,6 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ExpensesController extends BaseController
 {
@@ -91,10 +89,14 @@ class ExpensesController extends BaseController
 
         $Expenses_category = ExpenseCategory::where('deleted_at', '=', null)->get(['id', 'name']);
 
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+          //get warehouses assigned to user
+          $user_auth = auth()->user();
+          if($user_auth->is_all_warehouses){
+             $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+          }else{
+             $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+             $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+          }
 
         return response()->json([
             'expenses' => $data,
@@ -239,14 +241,6 @@ class ExpensesController extends BaseController
 
     }
 
-    //-------------- Export All Expenses to EXCEL  ---------------\\
-
-    public function exportExcel(Request $request)
-    {
-        $this->authorizeForUser($request->user('api'), 'view', Expense::class);
-
-        return Excel::download(new ExpenseExport, 'List_Expense.xlsx');
-    }
 
     //---------------- Show Form Create Expense ---------------\\
 
@@ -255,10 +249,14 @@ class ExpensesController extends BaseController
 
         $this->authorizeForUser($request->user('api'), 'create', Expense::class);
 
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        //get warehouses assigned to user
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         $Expenses_category = ExpenseCategory::where('deleted_at', '=', null)->get(['id', 'name']);
 
@@ -312,10 +310,14 @@ class ExpensesController extends BaseController
         $data['amount'] = $Expense->amount;
         $data['details'] = $Expense->details;
 
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        //get warehouses assigned to user
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         $Expenses_category = ExpenseCategory::where('deleted_at', '=', null)->get(['id', 'name']);
 

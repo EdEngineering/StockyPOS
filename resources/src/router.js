@@ -4,10 +4,9 @@ import Router from "vue-router";
 import { i18n } from "./plugins/i18n";
 import authenticate from "./auth/authenticate";
 import IsConnected from "./auth/IsConnected";
-
 import NProgress from "nprogress";
-
 Vue.use(Router);
+
 
 // create new router
 
@@ -75,7 +74,36 @@ const routes = [
                             import(
                                 /* webpackChunkName: "barcode" */ "./views/app/pages/products/barcode"
                             )
-                    }
+                    },
+                     // categories
+                     {
+                        name: "categories",
+                        path: "Categories",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "Categories" */ "./views/app/pages/products/categorie"
+                            )
+                    },
+
+                    // brands
+                    {
+                        name: "brands",
+                        path: "Brands",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "Brands" */ "./views/app/pages/products/brands"
+                            )
+                    },
+
+                    // units
+                    {
+                        name: "units",
+                        path: "Units",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "units" */ "./views/app/pages/products/units"
+                            )
+                    },
                 ]
             },
 
@@ -177,7 +205,7 @@ const routes = [
                         path: "store",
                         component: () =>
                             import(
-                                /* webpackChunkName: "store_expense" */ "./views/app/pages/expense/Create_expense"
+                                /* webpackChunkName: "store_expense" */ "./views/app/pages/expense/create_expense"
                             )
                     },
                     {
@@ -185,7 +213,7 @@ const routes = [
                         path: "edit/:id",
                         component: () =>
                             import(
-                                /* webpackChunkName: "edit_expense" */ "./views/app/pages/expense/Edit_expense"
+                                /* webpackChunkName: "edit_expense" */ "./views/app/pages/expense/edit_expense"
                             )
                     },
                     {
@@ -289,6 +317,14 @@ const routes = [
                             )
                     },
                     {
+                        name: "purchase_return",
+                        path: "purchase_return/:id",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "create_purchase_return" */ "./views/app/pages/purchase_return/create_purchase_return"
+                            )
+                    },
+                    {
                         name: "detail_purchase",
                         path: "detail/:id",
                         component: () =>
@@ -334,11 +370,27 @@ const routes = [
                             )
                     },
                     {
+                        name: "sale_return",
+                        path: "sale_return/:id",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "create_sale_return" */ "./views/app/pages/sale_return/create_sale_return"
+                            )
+                    },
+                    {
                         name: "detail_sale",
                         path: "detail/:id",
                         component: () =>
                             import(
                                 /* webpackChunkName: "detail_sale" */ "./views/app/pages/sales/detail_sale"
+                            )
+                    },
+                    {
+                        name: "shipment",
+                        path: "shipment",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "shipment" */ "./views/app/pages/sales/shipments"
                             )
                     }
                 ]
@@ -362,18 +414,18 @@ const routes = [
                                 "./views/app/pages/sale_return/index_sale_return"
                             )
                     },
-                    {
-                        name: "store_sale_return",
-                        path: "store",
-                        component: () =>
-                            import(
-                                /* webpackChunkName: "store_sale_return" */
-                                "./views/app/pages/sale_return/create_sale_return"
-                            )
-                    },
+                    // {
+                    //     name: "store_sale_return",
+                    //     path: "store",
+                    //     component: () =>
+                    //         import(
+                    //             /* webpackChunkName: "store_sale_return" */
+                    //             "./views/app/pages/sale_return/create_sale_return"
+                    //         )
+                    // },
                     {
                         name: "edit_sale_return",
-                        path: "edit/:id",
+                        path: "edit/:id/:sale_id",
                         component: () =>
                             import(
                                 /* webpackChunkName: "edit_sale_return" */
@@ -410,18 +462,18 @@ const routes = [
                                 "./views/app/pages/purchase_return/index_purchase_return"
                             )
                     },
-                    {
-                        name: "store_purchase_return",
-                        path: "store",
-                        component: () =>
-                            import(
-                                /* webpackChunkName: "store_purchase_return" */
-                                "./views/app/pages/purchase_return/create_purchase_return"
-                            )
-                    },
+                    // {
+                    //     name: "store_purchase_return",
+                    //     path: "store",
+                    //     component: () =>
+                    //         import(
+                    //             /* webpackChunkName: "store_purchase_return" */
+                    //             "./views/app/pages/purchase_return/create_purchase_return"
+                    //         )
+                    // },
                     {
                         name: "edit_purchase_return",
-                        path: "edit/:id",
+                        path: "edit/:id/:purchase_id",
                         component: () =>
                             import(
                                 /* webpackChunkName: "edit_purchase_return" */
@@ -668,25 +720,55 @@ const routes = [
                         ]
                     },
 
-                    // categories
-                    {
-                        name: "categories",
-                        path: "Categories",
+                     // sms_settings
+                     {
+                        name: "sms_settings",
+                        path: "sms_settings",
                         component: () =>
                             import(
-                                /* webpackChunkName: "Categories" */ "./views/app/pages/settings/categorie"
+                                /* webpackChunkName: "sms_settings" */ "./views/app/pages/settings/sms_settings"
                             )
                     },
 
-                    // brands
+                    // pos_settings
                     {
-                        name: "brands",
-                        path: "Brands",
+                    name: "pos_settings",
+                    path: "pos_settings",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "pos_settings" */ "./views/app/pages/settings/pos_settings"
+                        )
+                    },
+
+                     // payment_gateway
+                     {
+                        name: "payment_gateway",
+                        path: "payment_gateway",
                         component: () =>
                             import(
-                                /* webpackChunkName: "Brands" */ "./views/app/pages/settings/brands"
+                                /* webpackChunkName: "payment_gateway" */ "./views/app/pages/settings/payment_gateway"
                             )
-                    },
+                        },
+
+                        // mail_settings
+                     {
+                        name: "mail_settings",
+                        path: "mail_settings",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "mail_settings" */ "./views/app/pages/settings/mail_settings"
+                            )
+                        },
+
+                         // update_settings
+                     {
+                        name: "update_settings",
+                        path: "update_settings",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "update_settings" */ "./views/app/pages/settings/update_settings"
+                            )
+                        },
 
                     // currencies
                     {
@@ -695,16 +777,6 @@ const routes = [
                         component: () =>
                             import(
                                 /* webpackChunkName: "Currencies" */ "./views/app/pages/settings/currencies"
-                            )
-                    },
-
-                    // units
-                    {
-                        name: "units",
-                        path: "Units",
-                        component: () =>
-                            import(
-                                /* webpackChunkName: "units" */ "./views/app/pages/settings/units"
                             )
                     },
 
@@ -822,6 +894,16 @@ const routes = [
                                 "./views/app/pages/reports/sales_report"
                             )
                     },
+
+                    {
+                        name: "product_sales_report",
+                        path: "product_sales_report",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "product_sales_report" */
+                                "./views/app/pages/reports/product_sales_report"
+                            )
+                    },
                     {
                         name: "purchase_report",
                         path: "purchase_report",
@@ -829,6 +911,16 @@ const routes = [
                             import(
                                 /* webpackChunkName: "purchase_report" */
                                 "./views/app/pages/reports/purchase_report"
+                            )
+                    },
+
+                    {
+                        name: "product_purchases_report",
+                        path: "product_purchases_report",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "product_purchases_report" */
+                                "./views/app/pages/reports/product_purchases_report"
                             )
                     },
 
@@ -881,12 +973,69 @@ const routes = [
                     },
 
                     {
+                        name: "product_report",
+                        path: "product_report",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "product_report" */
+                                "./views/app/pages/reports/product_report"
+                            )
+                    },
+                    {
+                        name: "detail_product_report",
+                        path: "detail_product/:id",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "detail_product_report" */
+                                "./views/app/pages/reports/detail_product_report"
+                            )
+                    },
+
+                    {
                         name: "top_customers",
                         path: "top_customers",
                         component: () =>
                             import(
                                 /* webpackChunkName: "top_customers" */
                                 "./views/app/pages/reports/top_customers"
+                            )
+                    },
+
+                    {
+                        name: "stock_report",
+                        path: "stock_report",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "stock_report" */
+                                "./views/app/pages/reports/stock_report"
+                            )
+                    },
+                    {
+                        name: "detail_stock_report",
+                        path: "detail_stock/:id",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "detail_stock_report" */
+                                "./views/app/pages/reports/detail_stock_report"
+                            )
+                    },
+
+                    {
+                        name: "users_report",
+                        path: "users_report",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "users_report" */
+                                "./views/app/pages/reports/users_report"
+                            )
+                    },
+                    {
+                        name: "detail_user_report",
+                        path: "detail_user/:id",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "detail_user_report" */
+                                "./views/app/pages/reports/detail_user_report"
                             )
                     },
                 ]

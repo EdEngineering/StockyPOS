@@ -67,7 +67,7 @@ return [
     |
      */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------
@@ -190,7 +190,9 @@ return [
         Barryvdh\DomPDF\ServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
-
+        Nwidart\Modules\LaravelModulesServiceProvider::class,
+        Macellan\Zip\ZipServiceProvider::class,
+        Nexmo\Laravel\NexmoServiceProvider::class,
     ],
 
     /*
@@ -246,7 +248,8 @@ return [
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'ImageResize' => \Gumlet\ImageResize::class,
         'Image' => Intervention\Image\Facades\Image::class,
-
+        'Module' => Nwidart\Modules\Facades\Module::class,
+        'Nexmo' => Nexmo\Laravel\Facade\Nexmo::class,
     ],
 
 ];

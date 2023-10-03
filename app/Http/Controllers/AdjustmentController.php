@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserWarehouse;
-use App\Exports\AdjustmentsExport;
 use App\Models\Adjustment;
 use App\Models\AdjustmentDetail;
 use App\Models\ProductVariant;
@@ -16,7 +15,6 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 
 class AdjustmentController extends BaseController
 {
@@ -84,9 +82,12 @@ class AdjustmentController extends BaseController
 
          //get warehouses assigned to user
          $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
-
+         if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+         }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+         }
         return response()->json([
             'adjustments' => $data,
             'totalRows' => $totalRows,
@@ -558,10 +559,14 @@ class AdjustmentController extends BaseController
     {
         $this->authorizeForUser($request->user('api'), 'create', Adjustment::class);
 
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+          //get warehouses assigned to user
+          $user_auth = auth()->user();
+          if($user_auth->is_all_warehouses){
+             $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+          }else{
+             $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+             $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+          }
 
         return response()->json(['warehouses' => $warehouses]);
     }
@@ -648,10 +653,15 @@ class AdjustmentController extends BaseController
             $details[] = $data;
         }
 
-         //get warehouses assigned to user
-            $user_auth = auth()->user();
+       
+        //get warehouses assigned to user
+         $user_auth = auth()->user();
+         if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+         }else{
             $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
             $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+         }
 
         return response()->json([
             'details' => $details,
@@ -714,13 +724,5 @@ class AdjustmentController extends BaseController
         ]);
     }
 
-    //-------------- Export All Adjustments to EXCEL  ---------------\\
-
-    public function exportExcel(Request $request)
-    {
-        $this->authorizeForUser($request->user('api'), 'view', Adjustment::class);
-
-        return Excel::download(new AdjustmentsExport, 'List_Adjustments.xlsx');
-    }
 
 }

@@ -79,6 +79,18 @@ class ProviderPolicy
         return $user->hasRole($permission->roles);
     }
 
+    public function pay_supplier_due(User $user)
+    {
+        $permission = Permission::where('name', 'pay_supplier_due')->first();
+        return $user->hasRole($permission->roles);
+    }
+
+    public function pay_purchase_return_due(User $user)
+    {
+        $permission = Permission::where('name', 'pay_purchase_return_due')->first();
+        return $user->hasRole($permission->roles);
+    }
+
     /**
      * Determine whether the user can restore the model.
      *

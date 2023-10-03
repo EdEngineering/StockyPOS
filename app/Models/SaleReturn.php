@@ -11,7 +11,7 @@ class SaleReturn extends Model
     protected $fillable = [
         'date', 'Ref', 'GrandTotal',
         'user_id', 'discount', 'shipping',
-        'warehouse_id', 'client_id', 'notes', 'TaxNet', 'tax_rate', 'statut',
+        'warehouse_id', 'client_id','sale_id', 'notes', 'TaxNet', 'tax_rate', 'statut',
         'paid_amount', 'payment_statut', 'created_at', 'updated_at', 'deleted_at',
     ];
 
@@ -19,6 +19,7 @@ class SaleReturn extends Model
         'GrandTotal' => 'double',
         'user_id' => 'integer',
         'client_id' => 'integer',
+        'sale_id' => 'integer',
         'warehouse_id' => 'integer',
         'discount' => 'double',
         'shipping' => 'double',
@@ -50,6 +51,11 @@ class SaleReturn extends Model
     public function warehouse()
     {
         return $this->belongsTo('App\Models\Warehouse');
+    }
+
+    public function sale()
+    {
+        return $this->belongsTo('App\Models\Sale');
     }
 
     public function facture()

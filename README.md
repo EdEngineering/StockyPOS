@@ -168,3 +168,68 @@
 + Make fields optional for Customers & Providers
 + Fixed npm install
 + Small Bug fixes
+
+# Version 4.0.1
+
++ Added Warranty Management (IMEI & SERIAL NUMBERS)
++ Added Delivery Management
++ Added ability to assign warehouses to users
++ Added Users Report
++ Added Stock Report
++ Added Due Report to Customers
++ Added Due Report to Suppliers
++ Added Export PDF to all reports
++ Small Bug fixes
+
+# Version 4.0.2
+
++ Added    : Pay all due from the customer list in one payment
++ Added    : option product not for selling
++ Added    : Nexmo (Vonage now) SMS Gateway
++ Added    : bengali language 
++ Added    : Notification for new update
++ Added    : Select Timezone in settings
++ Added    : more setting pages
++ Added    : invoice footer
++ Added    : Permission to Dashboard
++ Added    : shipping fees in pos receipt
++ Updated  : Sale return will be according to Sale reference.
++ Updated  : Purchase return will be according to Purchase reference.
++ Updated  : Renamed all routes api
++ Updated  : documentation Updated
++ Fixed    : Mail settings issue
++ Fixed    : Bug fixed when you make a payment
++ Fixed    : only admin or user who has permission "system_setting" he can upgrade the system
++ Fixed    : bug fixes
+
+# Version 4.0.3
+
++ Add sum of Amount in reports
++ Add clean-webpack-plugin
++ Some bugs Fixed
+
+# Version 4.0.4
+
++ Pay all sell return due from the customer list in one payment
++ Pay all Supplier due from the Supplier list in one payment
++ Pay all Purchase return due from the Supplier list in one payment
++ Fix bug in  Purchase & sale return
++ Add Brazilian Portuguese Language
++ Add Tax Number for Customers & Suppliers
++ Add Total revenue (sales - sales return)
++ Documentation Updated
++ Some bugs Fixed
+
+# Version 4.0.5
+
++ Added  :  Profit Net using (FIFO METHOD)
++ Added  :  Profit Net using (Average Cost)
++ Added  :  Product report
++ Added  :  Product Sell report
++ Added  :  Product Purchase report
++ Added  :  Filter by warehouse in reports & dashboard
++ Added  :  Enable/Disable Print Invoice automatically
++ Fixed  :  Arabic language in PDF
++ Fixed  :  bug in twillio SMS
++ Fixed  :  print pos receipt
++ Some bugs Fixed

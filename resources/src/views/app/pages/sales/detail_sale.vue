@@ -6,8 +6,9 @@
     <b-card v-if="!isLoading">
       <b-row>
         <b-col md="12" class="mb-5">
+
           <router-link
-            v-if="currentUserPermissions && currentUserPermissions.includes('Sales_edit')"
+            v-if="currentUserPermissions && currentUserPermissions.includes('Sales_edit') && sale.sale_has_return == 'no'"
             title="Edit"
             class="btn btn-success btn-icon ripple btn-sm"
             :to="{ name:'edit_sale', params: { id: $route.params.id } }"
@@ -15,6 +16,7 @@
             <i class="i-Edit"></i>
             <span>{{$t('EditSale')}}</span>
           </router-link>
+
           <button @click="Sale_Email()" class="btn btn-info btn-icon ripple btn-sm">
             <i class="i-Envelope-2"></i>
             {{$t('Email')}}
@@ -32,7 +34,7 @@
             {{$t('print')}}
           </button>
           <button
-            v-if="currentUserPermissions && currentUserPermissions.includes('Sales_delete')"
+            v-if="currentUserPermissions && currentUserPermissions.includes('Sales_delete') && sale.sale_has_return == 'no'"
             @click="Delete_Sale()"
             class="btn btn-danger btn-icon ripple btn-sm"
           >
@@ -110,7 +112,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="detail in details">
-                      <td>{{detail.code}} ({{detail.name}})</td>
+                      <td><span>{{detail.code}} ({{detail.name}})</span>
+                        <p v-show="detail.is_imei && detail.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail.imei_number}}</p>
+                      </td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.Net_price,3)}}</td>
                       <td>{{formatNumber(detail.quantity,2)}} {{detail.unit_sale}}</td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.price,2)}}</td>
@@ -176,7 +180,7 @@
           <hr v-show="sale.note">
           <b-row class="mt-4">
            <b-col md="12">
-             <p>{{sale.note}}</p>
+             <p>{{$t('sale_note')}} : {{sale.note}}</p>
            </b-col>
         </b-row>
         </div>
@@ -224,7 +228,7 @@ export default {
       let id = this.$route.params.id;
      
        axios
-        .get(`Sale_PDF/${id}`, {
+        .get(`sale_pdf/${id}`, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -288,7 +292,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .post("sales/send/email", {
+        .post("sales_send_email", {
           id: id,
           to: this.email.to,
           client_name: this.email.client_name,
@@ -317,7 +321,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .post("sales/send/sms", {
+        .post("sales_send_sms", {
           id: id,
         })
         .then(response => {

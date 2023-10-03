@@ -41,9 +41,16 @@
           <b-button @click="Quotation_PDF()" size="sm" variant="outline-success ripple m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Quotation_Excel()" size="sm" variant="outline-danger ripple m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+          <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="quotations"
+              :columns="columns"
+              :file-name="'quotations'"
+              :file-type="'xlsx'"
+              :sheet-name="'quotations'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
           <router-link
             class="btn-sm btn btn-primary ripple btn-icon m-1"
             v-if="currentUserPermissions && currentUserPermissions.includes('Quotations_add')"
@@ -124,6 +131,13 @@
               class="badge badge-outline-success"
             >{{$t('Sent')}}</span>
             <span v-else class="badge badge-outline-info">{{$t('Pending')}}</span>
+          </div>
+          <div v-else-if="props.column.field == 'Ref'">
+            <router-link
+              :to="'/app/quotations/detail/'+props.row.id"
+            >
+              <span class="ul-btn__text ml-1">{{props.row.Ref}}</span>
+            </router-link>
           </div>
         </template>
       </vue-good-table>
@@ -390,7 +404,8 @@ export default {
       this.Filter_client = "";
       this.Filter_status = "";
       this.Filter_Ref = "";
-      (this.Filter_warehouse = ""), this.Get_Quotations(this.serverParams.page);
+      this.Filter_warehouse = ""; 
+      this.Get_Quotations(this.serverParams.page);
     },
 
     //------------------------------------- Quotations PDF -------------------------\\
@@ -402,6 +417,7 @@ export default {
         { title: "Date", dataKey: "date" },
         { title: "Ref", dataKey: "Ref" },
         { title: "Client", dataKey: "client_name" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
         { title: "Status", dataKey: "statut" },
         { title: "Total", dataKey: "GrandTotal" }
       ];
@@ -410,41 +426,13 @@ export default {
       pdf.save("Quotation_List.pdf");
     },
 
-    //----------------------------------- print Quotations Excel -------------------------\\
-    Quotation_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("quotations/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Quotations.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
-        })
-        .catch(() => {
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
-    },
-
      //----------------------------------- Quotation PDF by id -------------------------\\
     Quote_pdf(quote, id) {
       // Start the progress bar.
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .get("Quote_PDF/" + id, {
+        .get("quote_pdf/" + id, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -478,7 +466,7 @@ export default {
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .post("quotations/sendQuote/email", {
+        .post("quotations_send_email", {
           id: id,
           to: this.email.to,
           client_name: this.email.client_name,
@@ -619,7 +607,7 @@ export default {
           NProgress.start();
           NProgress.set(0.1);
           axios
-            .post("quotations/delete/by_selection", {
+            .post("quotations_delete_by_selection", {
               selectedIds: this.selectedIds
             })
             .then(() => {

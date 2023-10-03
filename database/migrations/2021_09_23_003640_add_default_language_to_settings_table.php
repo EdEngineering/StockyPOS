@@ -16,7 +16,7 @@ class AddDefaultLanguageToSettingsTable extends Migration
         if (! Schema::hasColumn('settings', 'default_language')) {
             Schema::table('settings', function (Blueprint $table) {
                 $table->engine = 'InnoDB';
-                $table->string('default_language', 192)->default('en');
+                $table->string('default_language', 192)->after('warehouse_id')->default('en');
     
             });
         }

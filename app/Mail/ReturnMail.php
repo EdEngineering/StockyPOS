@@ -32,7 +32,7 @@ class ReturnMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Return Detail')
+        return $this->subject('Return Details')
             ->markdown('emails.ReturnMail')
             ->attachData($this->pdf, 'Return_' . $this->Return_Mail['Ref'] . '.pdf', [
                 'mime' => 'application/pdf',

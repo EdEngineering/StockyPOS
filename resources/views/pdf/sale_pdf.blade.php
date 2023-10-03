@@ -12,13 +12,13 @@
          <img src="{{asset('/images/'.$setting['logo'])}}">
          </div>
          <div id="company">
-            <div><strong> Date: </strong>{{$sale['date']}}</div>
-            <div><strong> Number: </strong> {{$sale['Ref']}}</div>
-            <div><strong> Status: </strong> {{$sale['statut']}}</div>
-            <div><strong> Payment Status: </strong> {{$sale['payment_status']}}</div>
+            <div><strong> Date : </strong>{{$sale['date']}}</div>
+            <div><strong> Number : </strong> {{$sale['Ref']}}</div>
+            <div><strong> Status : </strong> {{$sale['statut']}}</div>
+            <div><strong> Payment Status : </strong> {{$sale['payment_status']}}</div>
          </div>
          <div id="Title-heading">
-            Sale  {{$sale['Ref']}}
+            Sale  : {{$sale['Ref']}}
          </div>
          </div>
       </header>
@@ -34,10 +34,11 @@
                   <tbody>
                      <tr>
                         <td>
-                           <div><strong>Name:</strong> {{$sale['client_name']}}</div>
-                           <div><strong>Phone:</strong> {{$sale['client_phone']}}</div>
-                           <div><strong>Adress:</strong>   {{$sale['client_adr']}}</div>
-                           <div><strong>Email:</strong>  {{$sale['client_email']}}</div>
+                           <div><strong>Full Name :</strong> {{$sale['client_name']}}</div>
+                           <div><strong>Phone :</strong> {{$sale['client_phone']}}</div>
+                           <div><strong>Email :</strong>  {{$sale['client_email']}}</div>
+                           <div><strong>Address :</strong>   {{$sale['client_adr']}}</div>
+                           @if($sale['client_tax'])<div><strong>Tax Number :</strong>  {{$sale['client_tax']}}</div>@endif
                         </td>
                      </tr>
                   </tbody>
@@ -54,9 +55,9 @@
                      <tr>
                         <td>
                            <div id="comp">{{$setting['CompanyName']}}</div>
-                           <div><strong>Adress:</strong>  {{$setting['CompanyAdress']}}</div>
-                           <div><strong>Phone:</strong>  {{$setting['CompanyPhone']}}</div>
-                           <div><strong>Email:</strong>  {{$setting['email']}}</div>
+                           <div><strong>Phone :</strong>  {{$setting['CompanyPhone']}}</div>
+                           <div><strong>Email :</strong>  {{$setting['email']}}</div>
+                           <div><strong>Address :</strong>  {{$setting['CompanyAdress']}}</div>
                         </td>
                      </tr>
                   </tbody>
@@ -78,7 +79,12 @@
                <tbody>
                   @foreach ($details as $detail)
                   <tr>
-                     <td>{{$detail['code']}} ({{$detail['name']}})</td>
+                     <td>
+                        <span>{{$detail['code']}} ({{$detail['name']}})</span>
+                           @if($detail['is_imei'] && $detail['imei_number'] !==null)
+                              <p>IMEI/SN : {{$detail['imei_number']}}</p>
+                           @endif
+                     </td>
                      <td>{{$detail['price']}} </td>
                      <td>{{$detail['quantity']}}/{{$detail['unitSale']}}</td>
                      <td>{{$detail['DiscountNet']}} </td>
@@ -119,7 +125,11 @@
                </tr>
             </table>
          </div>
-         <div id="signature">Signature</div>
+         <div id="signature">
+            @if($setting['is_invoice_footer'] && $setting['invoice_footer'] !==null)
+               <p>{{$setting['invoice_footer']}}</p>
+            @endif
+         </div>
       </main>
    </body>
 </html>

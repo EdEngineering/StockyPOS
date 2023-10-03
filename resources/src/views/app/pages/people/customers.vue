@@ -27,7 +27,7 @@
         nextLabel: 'next',
         prevLabel: 'prev',
       }"
-        styleClass="table-hover tableOne vgt-table"
+       :styleClass="showDropdown?'tableOne table-hover vgt-table full-height':'tableOne table-hover vgt-table non-height'"
       >
         <div slot="selected-row-actions">
           <button class="btn btn-danger btn-sm" @click="delete_by_selected()">{{$t('Del')}}</button>
@@ -40,9 +40,16 @@
           <b-button @click="clients_PDF()" size="sm" variant="outline-success m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="clients_Excel()" size="sm" variant="outline-danger m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+           <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="clients"
+              :columns="columns"
+              :file-name="'clients'"
+              :file-type="'xlsx'"
+              :sheet-name="'clients'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
           <b-button
             @click="Show_import_clients()"
             size="sm"
@@ -65,29 +72,66 @@
 
         <template slot="table-row" slot-scope="props">
           <span v-if="props.column.field == 'actions'">
-            <a title="View" class="cursor-pointer" v-b-tooltip.hover @click="showDetails(props.row)">
-              <i class="i-Eye text-25 text-info"></i>
-            </a>
-            <a
-              @click="Edit_Client(props.row)"
-              v-if="currentUserPermissions && currentUserPermissions.includes('Customers_edit')"
-              title="Edit"
-              class="cursor-pointer"
-              v-b-tooltip.hover
-            >
-              <i class="i-Edit text-25 text-success"></i>
-            </a>
-            <a
-              title="Delete"
-              class="cursor-pointer"
-              v-b-tooltip.hover
-              v-if="currentUserPermissions && currentUserPermissions.includes('Customers_delete')"
-              @click="Remove_Client(props.row.id)"
-            >
-              <i class="i-Close-Window text-25 text-danger"></i>
-            </a>
+            <div>
+              <b-dropdown
+                id="dropdown-right"
+                variant="link"
+                text="right align"
+                toggle-class="text-decoration-none"
+                size="lg"
+                right
+                no-caret
+              >
+                <template v-slot:button-content class="_r_btn border-0">
+                  <span class="_dot _r_block-dot bg-dark"></span>
+                  <span class="_dot _r_block-dot bg-dark"></span>
+                  <span class="_dot _r_block-dot bg-dark"></span>
+                </template>
+
+                <b-dropdown-item
+                  v-if="props.row.due > 0 && currentUserPermissions && currentUserPermissions.includes('pay_due')"
+                  @click="Pay_due(props.row)"
+                >
+                  <i class="nav-icon i-Dollar font-weight-bold mr-2"></i>
+                  {{$t('pay_all_sell_due_at_a_time')}}
+                </b-dropdown-item>
+
+                <b-dropdown-item
+                  v-if="props.row.return_Due > 0 && currentUserPermissions && currentUserPermissions.includes('pay_sale_return_due')"
+                  @click="Pay_return_due(props.row)"
+                >
+                  <i class="nav-icon i-Dollar font-weight-bold mr-2"></i>
+                  {{$t('pay_all_sell_return_due_at_a_time')}}
+                </b-dropdown-item>
+               
+                <b-dropdown-item
+                  @click="showDetails(props.row)"
+                >
+                  <i class="nav-icon i-Eye font-weight-bold mr-2"></i>
+                  {{$t('Customer_details')}}
+                </b-dropdown-item>
+
+                <b-dropdown-item
+                 v-if="currentUserPermissions && currentUserPermissions.includes('Customers_edit')"
+                  @click="Edit_Client(props.row)"
+                >
+                  <i class="nav-icon i-Edit font-weight-bold mr-2"></i>
+                  {{$t('Edit_Customer')}}
+                </b-dropdown-item>
+
+                <b-dropdown-item
+                  title="Delete"
+                  v-if="currentUserPermissions.includes('Customers_delete')"
+                  @click="Remove_Client(props.row.id)"
+                >
+                  <i class="nav-icon i-Close-Window font-weight-bold mr-2"></i>
+                  {{$t('Delete_Customer')}}
+                </b-dropdown-item>
+                </b-dropdown>
+            </div>
           </span>
         </template>
+
       </vue-good-table>
     </div>
 
@@ -139,6 +183,270 @@
       </div>
     </b-sidebar>
 
+    <!-- Modal Pay_due-->
+    <validation-observer ref="ref_pay_due">
+      <b-modal
+        hide-footer
+        size="md"
+        id="modal_Pay_due"
+        title="Pay Due"
+      >
+        <b-form @submit.prevent="Submit_Payment_sell_due">
+          <b-row>
+          
+            <!-- Paying Amount  -->
+            <b-col lg="6" md="12" sm="12">
+              <validation-provider
+                name="Amount"
+                :rules="{ required: true , regex: /^\d*\.?\d*$/}"
+                v-slot="validationContext"
+              >
+                <b-form-group :label="$t('Paying_Amount') + ' ' + '*'">
+                  <b-form-input
+                   @keyup="Verified_paidAmount(payment.amount)"
+                    label="Amount"
+                    :placeholder="$t('Paying_Amount')"
+                    v-model.number="payment.amount"
+                    :state="getValidationState(validationContext)"
+                    aria-describedby="Amount-feedback"
+                  ></b-form-input>
+                  <b-form-invalid-feedback id="Amount-feedback">{{ validationContext.errors[0] }}</b-form-invalid-feedback>
+                  <span class="badge badge-danger">{{$t('Due')}} : {{currentUser.currency}} {{payment.due}}</span>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
+
+            <!-- Payment choice -->
+            <b-col lg="6" md="12" sm="12">
+              <validation-provider name="Payment choice" :rules="{ required: true}">
+                <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice')+ ' ' + '*'">
+                  <v-select
+                    :class="{'is-invalid': !!errors.length}"
+                    :state="errors[0] ? false : (valid ? true : null)"
+                    v-model="payment.Reglement"
+                    :reduce="label => label.value"
+                    :placeholder="$t('PleaseSelect')"
+                    :options="
+                          [
+                          {label: 'Cash', value: 'Cash'},
+                          {label: 'credit card', value: 'credit card'},
+                          {label: 'TPE', value: 'tpe'},
+                          {label: 'cheque', value: 'cheque'},
+                          {label: 'Western Union', value: 'Western Union'},
+                          {label: 'bank transfer', value: 'bank transfer'},
+                          {label: 'other', value: 'other'},
+                          ]"
+                  ></v-select>
+                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
+            <!-- Note -->
+            <b-col lg="12" md="12" sm="12" class="mt-3">
+              <b-form-group :label="$t('Please_provide_any_details')">
+                <b-form-textarea id="textarea" v-model="payment.notes" rows="3" max-rows="6"></b-form-textarea>
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12" class="mt-3">
+              <b-button
+                variant="primary"
+                type="submit"
+                :disabled="paymentProcessing"
+              >{{$t('submit')}}</b-button>
+              <div v-once class="typo__p" v-if="paymentProcessing">
+                <div class="spinner sm spinner-primary mt-3"></div>
+              </div>
+            </b-col>
+
+          </b-row>
+        </b-form>
+      </b-modal>
+    </validation-observer>
+
+    <!-- Modal Pay_return_Due-->
+    <validation-observer ref="ref_pay_return_due">
+      <b-modal
+        hide-footer
+        size="md"
+        id="modal_Pay_return_due"
+        title="Pay Sell Return Due"
+      >
+        <b-form @submit.prevent="Submit_Payment_sell_return_due">
+          <b-row>
+          
+            <!-- Paying Amount -->
+            <b-col lg="6" md="12" sm="12">
+              <validation-provider
+                name="Amount"
+                :rules="{ required: true , regex: /^\d*\.?\d*$/}"
+                v-slot="validationContext"
+              >
+                <b-form-group :label="$t('Paying_Amount') + ' ' + '*'">
+                  <b-form-input
+                   @keyup="Verified_return_paidAmount(payment_return.amount)"
+                    label="Amount"
+                    :placeholder="$t('Paying_Amount')"
+                    v-model.number="payment_return.amount"
+                    :state="getValidationState(validationContext)"
+                    aria-describedby="Amount-feedback"
+                  ></b-form-input>
+                  <b-form-invalid-feedback id="Amount-feedback">{{ validationContext.errors[0] }}</b-form-invalid-feedback>
+                  <span class="badge badge-danger">{{$t('Due')}} : {{currentUser.currency}} {{payment_return.return_Due}}</span>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
+
+            <!-- Payment choice -->
+            <b-col lg="6" md="12" sm="12">
+              <validation-provider name="Payment choice" :rules="{ required: true}">
+                <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice')+ ' ' + '*'">
+                  <v-select
+                    :class="{'is-invalid': !!errors.length}"
+                    :state="errors[0] ? false : (valid ? true : null)"
+                    v-model="payment_return.Reglement"
+                    :reduce="label => label.value"
+                    :placeholder="$t('PleaseSelect')"
+                    :options="
+                          [
+                          {label: 'Cash', value: 'Cash'},
+                          {label: 'credit card', value: 'credit card'},
+                          {label: 'TPE', value: 'tpe'},
+                          {label: 'cheque', value: 'cheque'},
+                          {label: 'Western Union', value: 'Western Union'},
+                          {label: 'bank transfer', value: 'bank transfer'},
+                          {label: 'other', value: 'other'},
+                          ]"
+                  ></v-select>
+                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
+            <!-- Note -->
+            <b-col lg="12" md="12" sm="12" class="mt-3">
+              <b-form-group :label="$t('Please_provide_any_details')">
+                <b-form-textarea id="textarea" v-model="payment_return.notes" rows="3" max-rows="6"></b-form-textarea>
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12" class="mt-3">
+              <b-button
+                variant="primary"
+                type="submit"
+                :disabled="payment_return_Processing"
+              >{{$t('submit')}}</b-button>
+              <div v-once class="typo__p" v-if="payment_return_Processing">
+                <div class="spinner sm spinner-primary mt-3"></div>
+              </div>
+            </b-col>
+
+          </b-row>
+        </b-form>
+      </b-modal>
+    </validation-observer>
+
+    <!-- Modal Show Customer_Invoice-->
+    <b-modal hide-footer size="sm" scrollable id="Show_invoice" :title="$t('Customer_Credit_Note')">
+        <div id="invoice-POS">
+          <div style="max-width:400px;margin:0px auto">
+          <div class="info" >
+            <h2 class="text-center">{{company_info.CompanyName}}</h2>
+
+            <p>
+                <span>{{$t('date')}} : {{payment.date}} <br></span>
+                <span >{{$t('Adress')}} : {{company_info.CompanyAdress}} <br></span>
+                <span >{{$t('Phone')}} : {{company_info.CompanyPhone}} <br></span>
+                <span >{{$t('Customer')}} : {{payment.client_name}} <br></span>
+              </p>
+          </div>
+
+           <table
+                class="change mt-3"
+                style=" font-size: 10px;"
+              >
+                <thead>
+                  <tr style="background: #eee; ">
+                    <th style="text-align: left;" colspan="1">{{$t('PayeBy')}}:</th>
+                    <th style="text-align: center;" colspan="2">{{$t('Amount')}}:</th>
+                    <th style="text-align: right;" colspan="1">{{$t('Due')}}:</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td style="text-align: left;" colspan="1">{{payment.Reglement}}</td>
+                    <td
+                      style="text-align: center;"
+                      colspan="2"
+                    >{{formatNumber(payment.amount ,2)}}</td>
+                    <td
+                      style="text-align: right;"
+                      colspan="1"
+                    >{{formatNumber(payment.due - payment.amount ,2)}}</td>
+                  </tr>
+                </tbody>
+              </table>
+          </div>
+        </div>
+      <button @click="print_it()" class="btn btn-outline-primary">
+        <i class="i-Billing"></i>
+        {{$t('print')}}
+      </button>
+    </b-modal>
+
+    <!-- Modal Show_invoice_return-->
+    <b-modal hide-footer size="sm" scrollable id="Show_invoice_return" :title="$t('Sell_return_due')">
+        <div id="invoice-POS-return">
+          <div style="max-width:400px;margin:0px auto">
+          <div class="info" >
+            <h2 class="text-center">{{company_info.CompanyName}}</h2>
+
+            <p>
+                <span>{{$t('date')}} : {{payment_return.date}} <br></span>
+                <span >{{$t('Adress')}} : {{company_info.CompanyAdress}} <br></span>
+                <span >{{$t('Phone')}} : {{company_info.CompanyPhone}} <br></span>
+                <span >{{$t('Customer')}} : {{payment_return.client_name}} <br></span>
+              </p>
+          </div>
+
+           <table
+                class="change mt-3"
+                style=" font-size: 10px;"
+              >
+                <thead>
+                  <tr style="background: #eee; ">
+                    <th style="text-align: left;" colspan="1">{{$t('PayeBy')}}:</th>
+                    <th style="text-align: center;" colspan="2">{{$t('Amount')}}:</th>
+                    <th style="text-align: right;" colspan="1">{{$t('Due')}}:</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td style="text-align: left;" colspan="1">{{payment_return.Reglement}}</td>
+                    <td
+                      style="text-align: center;"
+                      colspan="2"
+                    >{{formatNumber(payment_return.amount ,2)}}</td>
+                    <td
+                      style="text-align: right;"
+                      colspan="1"
+                    >{{formatNumber(payment_return.return_Due - payment_return.amount ,2)}}</td>
+                  </tr>
+                </tbody>
+              </table>
+          </div>
+        </div>
+      <button @click="print_return_due()" class="btn btn-outline-primary">
+        <i class="i-Billing"></i>
+        {{$t('print')}}
+      </button>
+    </b-modal>
+
     <!-- Modal Create & Edit Customer -->
     <validation-observer ref="Create_Customer">
       <b-modal hide-footer size="lg" id="New_Customer" :title="editmode?$t('Edit'):$t('Add')">
@@ -163,31 +471,16 @@
                 </b-form-group>
               </validation-provider>
             </b-col>
-
-            <!-- Customer Email -->
+            
+             <!-- Customer Email -->
             <b-col md="6" sm="12">
-              <validation-provider
-                name="Email customer"
-                :rules="{ required: true}"
-                v-slot="validationContext"
-              >
-                <b-form-group :label="$t('Email') + ' ' + '*'">
+                <b-form-group :label="$t('Email')">
                   <b-form-input
-                    :state="getValidationState(validationContext)"
-                    aria-describedby="Email-feedback"
-                    label="Email"
+                    label="email"
                     v-model="client.email"
                     :placeholder="$t('Email')"
                   ></b-form-input>
-                  <b-form-invalid-feedback id="Email-feedback">{{ validationContext.errors[0] }}</b-form-invalid-feedback>
-                  <b-alert
-                    show
-                    variant="danger"
-                    class="error mt-1"
-                    v-if="email_exist !=''"
-                  >{{email_exist}}</b-alert>
                 </b-form-group>
-              </validation-provider>
             </b-col>
 
             <!-- Customer Phone -->
@@ -223,14 +516,27 @@
                 </b-form-group>
             </b-col>
 
-            <!-- Customer Adress -->
+             <!-- Customer Tax Number -->
             <b-col md="6" sm="12">
-                <b-form-group :label="$t('Adress')">
+                <b-form-group :label="$t('Tax_Number')">
                   <b-form-input
+                    label="Tax Number"
+                    v-model="client.tax_number"
+                    :placeholder="$t('Tax_Number')"
+                  ></b-form-input>
+                </b-form-group>
+            </b-col>
+
+            <!-- Customer Adress -->
+            <b-col md="12" sm="12">
+                <b-form-group :label="$t('Adress')">
+                  <textarea
                     label="Adress"
+                    class="form-control"
+                    rows="4"
                     v-model="client.adresse"
                     :placeholder="$t('Adress')"
-                  ></b-form-input>
+                 ></textarea>
                 </b-form-group>
             </b-col>
 
@@ -285,7 +591,24 @@
               <tr>
                 <!-- Customer Adress -->
                 <td>{{$t('Adress')}}</td>
-                <th>{{client.adresse.substring(0, 24)}}</th>
+                <th>{{client.adresse}}</th>
+              </tr>
+              <tr>
+                <!-- Tax Number -->
+                <td>{{$t('Tax_Number')}}</td>
+                <th>{{client.tax_number}}</th>
+              </tr>
+
+              <tr>
+                <!-- Total_Sale_Due -->
+                <td>{{$t('Total_Sale_Due')}}</td>
+                <th>{{currentUser.currency}} {{client.due}}</th>
+              </tr>
+
+               <tr>
+                <!-- Total_Sell_Return_Due -->
+                <td>{{$t('Total_Sell_Return_Due')}}</td>
+                <th>{{currentUser.currency}} {{client.return_Due}}</th>
               </tr>
             </tbody>
           </table>
@@ -342,7 +665,7 @@
                 <tr>
                   <td>{{$t('Email')}}</td>
                   <th>
-                    <span class="badge badge-outline-success">{{$t('Field_is_required')}} | unique</span>
+                    <span class="badge badge-outline-success"></span>
                   </th>
                 </tr>
 
@@ -356,6 +679,9 @@
 
                 <tr>
                   <td>{{$t('Adress')}}</td>
+                </tr>
+                 <tr>
+                  <td>{{$t('Tax_Number')}}</td>
                 </tr>
               </tbody>
             </table>
@@ -381,6 +707,8 @@ export default {
       isLoading: true,
       SubmitProcessing:false,
       ImportProcessing:false,
+      paymentProcessing:false,
+      payment_return_Processing:false,
       serverParams: {
         columnFilters: {},
         sort: {
@@ -390,7 +718,26 @@ export default {
         page: 1,
         perPage: 10
       },
-      email_exist:"",
+      showDropdown: false,
+      payment: {
+        client_id: "",
+        client_name: "",
+        date:"",
+        due: "",
+        amount: "",
+        notes: "",
+        Reglement: "",
+      },
+       payment_return: {
+        client_id: "",
+        client_name: "",
+        date:"",
+        return_Due: "",
+        amount: "",
+        notes: "",
+        Reglement: "",
+      },
+      company_info:{},
       selectedIds: [],
       totalRows: "",
       search: "",
@@ -411,13 +758,24 @@ export default {
         phone: "",
         country: "",
         city: "",
-        adresse: ""
+        adresse: "",
+        tax_number: "",
+
       }
     };
   },
 
+   mounted() {
+    this.$root.$on("bv::dropdown::show", bvEvent => {
+      this.showDropdown = true;
+    });
+    this.$root.$on("bv::dropdown::hide", bvEvent => {
+      this.showDropdown = false;
+    });
+  },
+
   computed: {
-    ...mapGetters(["currentUserPermissions"]),
+    ...mapGetters(["currentUserPermissions", "currentUser"]),
     columns() {
       return [
         {
@@ -446,16 +804,26 @@ export default {
           thClass: "text-left"
         },
         {
-          label: this.$t("Country"),
-          field: "country",
+          label: this.$t("Tax_Number"),
+          field: "tax_number",
           tdClass: "text-left",
           thClass: "text-left"
         },
         {
-          label: this.$t("City"),
-          field: "city",
+          label: this.$t("Total_Sale_Due"),
+          field: "due",
+          type: "decimal",
           tdClass: "text-left",
-          thClass: "text-left"
+          thClass: "text-left",
+          sortable: false
+        },
+        {
+          label: this.$t("Total_Sell_Return_Due"),
+          field: "return_Due",
+          type: "decimal",
+          tdClass: "text-left",
+          thClass: "text-left",
+          sortable: false
         },
 
         {
@@ -471,6 +839,7 @@ export default {
   },
 
   methods: {
+
     //------------- Submit Validation Create & Edit Customer
     Submit_Customer() {
       this.$refs.Create_Customer.validate().then(success => {
@@ -569,43 +938,19 @@ export default {
       let columns = [
         { title: "Code", dataKey: "code" },
         { title: "Name", dataKey: "name" },
+        { title: "Sale Due", dataKey: "due" },
+        { title: "Sell Return Due", dataKey: "return_Due" },
+        { title: "Tax Number", dataKey: "tax_number" },
         { title: "Phone", dataKey: "phone" },
         { title: "Email", dataKey: "email" },
         { title: "Country", dataKey: "country" },
-        { title: "City", dataKey: "city" }
+        { title: "City", dataKey: "city" },
       ];
       pdf.autoTable(columns, self.clients);
       pdf.text("Customer List", 40, 25);
       pdf.save("Customer_List.pdf");
     },
 
-    //--------------------------------- Clients Excel -------------------------------\\
-    clients_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("clients/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Customers.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        })
-        .catch(() => {
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
-    },
 
     //--------------------------------------- Get All Clients -------------------------------\\
     Get_Clients(page) {
@@ -635,6 +980,7 @@ export default {
         )
         .then(response => {
           this.clients = response.data.clients;
+          this.company_info = response.data.company_info;
           this.totalRows = response.data.totalRows;
 
           // Complete the animation of theprogress bar.
@@ -750,6 +1096,7 @@ export default {
           name: this.client.name,
           email: this.client.email,
           phone: this.client.phone,
+          tax_number: this.client.tax_number,
           country: this.client.country,
           city: this.client.city,
           adresse: this.client.adresse
@@ -765,9 +1112,7 @@ export default {
           this.SubmitProcessing = false;
         })
         .catch(error => {
-          if (error.errors.email.length > 0) {
-            this.email_exist = error.errors.email[0];
-          }
+          
           this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
           this.SubmitProcessing = false;
         });
@@ -781,6 +1126,7 @@ export default {
           name: this.client.name,
           email: this.client.email,
           phone: this.client.phone,
+          tax_number: this.client.tax_number,
           country: this.client.country,
           city: this.client.city,
           adresse: this.client.adresse
@@ -795,9 +1141,7 @@ export default {
           this.SubmitProcessing = false;
         })
         .catch(error => {
-          if (error.errors.email.length > 0) {
-            this.email_exist = error.errors.email[0];
-          }
+         
           this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
           this.SubmitProcessing = false;
         });
@@ -805,13 +1149,13 @@ export default {
 
     //-------------------------------- Reset Form -------------------------------\\
     reset_Form() {
-      this.email_exist= "";
       this.client = {
         id: "",
         name: "",
         email: "",
         phone: "",
         country: "",
+        tax_number: "",
         city: "",
         adresse: ""
       };
@@ -892,7 +1236,241 @@ export default {
             });
         }
       });
-    }
+    },
+
+
+    //------ Validate Form Submit_Payment_sell_due
+    Submit_Payment_sell_due() {
+      this.$refs.ref_pay_due.validate().then(success => {
+        if (!success) {
+           this.makeToast(
+            "danger",
+            this.$t("Please_fill_the_form_correctly"),
+            this.$t("Failed")
+          );
+        } else if (this.payment.amount > this.payment.due) {
+          this.makeToast(
+            "warning",
+            this.$t("Paying_amount_is_greater_than_Total_Due"),
+            this.$t("Warning")
+          );
+          this.payment.amount = 0;
+        }
+       else {
+            this.Submit_Pay_due();
+        }
+
+      });
+    },
+
+      //---------- keyup paid Amount
+
+    Verified_paidAmount() {
+      if (isNaN(this.payment.amount)) {
+        this.payment.amount = 0;
+      } else if (this.payment.amount > this.payment.due) {
+        this.makeToast(
+          "warning",
+          this.$t("Paying_amount_is_greater_than_Total_Due"),
+          this.$t("Warning")
+        );
+        this.payment.amount = 0;
+      } 
+    },
+
+      //-------------------------------- reset_Form_payment-------------------------------\\
+    reset_Form_payment() {
+      this.payment = {
+        client_id: "",
+        client_name: "",
+        date: "",
+        due: "",
+        amount: "",
+        notes: "",
+        Reglement: "",
+      };
+    },
+
+    //------------------------------ Show Modal Pay_due-------------------------------\\
+    Pay_due(row) {
+      this.reset_Form_payment();
+      this.payment.client_id = row.id;
+      this.payment.client_name = row.name;
+      this.payment.due = row.due;
+      this.payment.date = new Date().toISOString().slice(0, 10);
+      setTimeout(() => {
+        this.$bvModal.show("modal_Pay_due");
+      }, 500);
+      
+    },
+
+     //------------------------------ Print Customer_Invoice -------------------------\\
+    print_it() {
+      var divContents = document.getElementById("invoice-POS").innerHTML;
+      var a = window.open("", "", "height=500, width=500");
+      a.document.write(
+        '<link rel="stylesheet" href="/css/pos_print.css"><html>'
+      );
+      a.document.write("<body >");
+      a.document.write(divContents);
+      a.document.write("</body></html>");
+      a.document.close();
+      setTimeout(() => {
+         a.print();
+      }, 1000);
+    },
+
+     //---------------------------------------- Submit_Pay_due-------------------------------\\
+    Submit_Pay_due() {
+      this.paymentProcessing = true;
+      axios
+        .post("clients_pay_due", {
+          client_id: this.payment.client_id,
+          amount: this.payment.amount,
+          notes: this.payment.notes,
+          Reglement: this.payment.Reglement,
+        })
+        .then(response => {
+          Fire.$emit("Event_pay_due");
+
+          this.makeToast(
+            "success",
+            this.$t("Create.TitlePayment"),
+            this.$t("Success")
+          );
+          this.paymentProcessing = false;
+        })
+        .catch(error => {
+          this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
+          this.paymentProcessing = false;
+        });
+    },
+
+    //-------------------------------Pay sell return due -----------------------------------\\
+
+     //------ Validate Form Submit_Payment_sell_return_due
+    Submit_Payment_sell_return_due() {
+      this.$refs.ref_pay_return_due.validate().then(success => {
+        if (!success) {
+           this.makeToast(
+            "danger",
+            this.$t("Please_fill_the_form_correctly"),
+            this.$t("Failed")
+          );
+        } else if (this.payment_return.amount > this.payment_return.return_Due) {
+          this.makeToast(
+            "warning",
+            this.$t("Paying_amount_is_greater_than_Total_Due"),
+            this.$t("Warning")
+          );
+          this.payment_return.amount = 0;
+        }
+       else {
+            this.Submit_Pay_return_due();
+        }
+
+      });
+    },
+
+      //---------- keyup paid Amount
+
+    Verified_return_paidAmount() {
+      if (isNaN(this.payment_return.amount)) {
+        this.payment_return.amount = 0;
+      } else if (this.payment_return.amount > this.payment_return.return_Due) {
+        this.makeToast(
+          "warning",
+          this.$t("Paying_amount_is_greater_than_Total_Due"),
+          this.$t("Warning")
+        );
+        this.payment_return.amount = 0;
+      } 
+    },
+
+      //-------------------------------- reset_Form_payment-------------------------------\\
+    reset_Form_payment_return_due() {
+      this.payment_return = {
+        client_id: "",
+        client_name: "",
+        date: "",
+        return_Due: "",
+        amount: "",
+        notes: "",
+        Reglement: "",
+      };
+    },
+
+    //------------------------------ Show Modal Pay_return_due-------------------------------\\
+    Pay_return_due(row) {
+      this.reset_Form_payment_return_due();
+      this.payment_return.client_id = row.id;
+      this.payment_return.client_name = row.name;
+      this.payment_return.return_Due = row.return_Due;
+      this.payment_return.date = new Date().toISOString().slice(0, 10);
+      setTimeout(() => {
+        this.$bvModal.show("modal_Pay_return_due");
+      }, 500);
+      
+    },
+
+     //------------------------------ Print Customer_Invoice -------------------------\\
+    print_return_due() {
+      var divContents = document.getElementById("invoice-POS-return").innerHTML;
+      var a = window.open("", "", "height=500, width=500");
+      a.document.write(
+        '<link rel="stylesheet" href="/css/pos_print.css"><html>'
+      );
+      a.document.write("<body >");
+      a.document.write(divContents);
+      a.document.write("</body></html>");
+      a.document.close();
+      setTimeout(() => {
+         a.print();
+      }, 1000);
+    },
+
+     //---------------------------------------- Submit_Pay_due-------------------------------\\
+    Submit_Pay_return_due() {
+      this.payment_return_Processing = true;
+      axios
+        .post("clients_pay_return_due", {
+          client_id: this.payment_return.client_id,
+          amount: this.payment_return.amount,
+          notes: this.payment_return.notes,
+          Reglement: this.payment_return.Reglement,
+        })
+        .then(response => {
+          Fire.$emit("Event_pay_return_due");
+
+          this.makeToast(
+            "success",
+            this.$t("Create.TitlePayment"),
+            this.$t("Success")
+          );
+          this.payment_return_Processing = false;
+        })
+        .catch(error => {
+          this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
+          this.payment_return_Processing = false;
+        });
+    },
+
+     //------------------------------Formetted Numbers -------------------------\\
+    formatNumber(number, dec) {
+      const value = (typeof number === "string"
+        ? number
+        : number.toString()
+      ).split(".");
+      if (dec <= 0) return value[0];
+      let formated = value[1] || "";
+      if (formated.length > dec)
+        return `${value[0]}.${formated.substr(0, dec)}`;
+      while (formated.length < dec) formated += "0";
+      return `${value[0]}.${formated}`;
+    },
+
+
+
   }, // END METHODS
 
   //----------------------------- Created function-------------------
@@ -905,6 +1483,25 @@ export default {
       setTimeout(() => NProgress.done(), 500);
       this.$bvModal.show("showDetails");
     });
+
+    Fire.$on("Event_pay_due", () => {
+      setTimeout(() => {
+        this.Get_Clients(this.serverParams.page);
+        this.$bvModal.hide("modal_Pay_due");
+      }, 500);
+       this.$bvModal.show("Show_invoice");
+      //  setTimeout(() => this.print_it(), 1000);
+    });
+
+    Fire.$on("Event_pay_return_due", () => {
+      setTimeout(() => {
+        this.Get_Clients(this.serverParams.page);
+        this.$bvModal.hide("modal_Pay_return_due");
+      }, 500);
+       this.$bvModal.show("Show_invoice_return");
+      //  setTimeout(() => this.print_return_due(), 1000);
+    });
+
 
     Fire.$on("Event_Customer", () => {
       setTimeout(() => {

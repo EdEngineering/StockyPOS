@@ -6,7 +6,7 @@
     <validation-observer ref="Edit_Product" v-if="!isLoading">
       <b-form @submit.prevent="Submit_Product" enctype="multipart/form-data">
         <b-row>
-          <b-col md="8">
+          <b-col md="8" class="mb-2">
             <b-card>
               <b-card-body>
                 <b-row>
@@ -287,7 +287,7 @@
                   </b-col>
 
                   <b-col md="12" class="mb-2">
-                    <b-form-group :label="$t('Note')">
+                    <b-form-group :label="$t('Description')">
                       <textarea
                         rows="4"
                         class="form-control"
@@ -296,6 +296,54 @@
                       ></textarea>
                     </b-form-group>
                   </b-col>
+
+                    <!-- Multiple Variants -->
+                  <b-col md="12 mb-2">
+                    <div class="form-check">
+                      <label class="checkbox checkbox-outline-primary">
+                        <input type="checkbox" v-model="product.is_variant">
+                        <h5>{{$t('ProductHasMultiVariants')}}</h5>
+                        <span class="checkmark"></span>
+                      </label>
+                    </div>
+                  </b-col>
+                  <b-col md="12 mb-5" v-show="product.is_variant">
+                    <vue-tags-input
+                      placeholder="+ add"
+                      v-model="tag"
+                      :tags="variants"
+                      class="tag-custom text-15"
+                      @adding-duplicate="showNotifDuplicate()"
+                      @tags-changed="newTags => variants = newTags"
+                    />
+                  </b-col>
+
+                   <!-- Product_Has_Imei_Serial_number -->
+                   <b-col md="12 mb-2">
+                    <ValidationProvider rules vid="product" v-slot="x">
+                      <div class="form-check">
+                        <label class="checkbox checkbox-outline-primary">
+                          <input type="checkbox" v-model="product.is_imei">
+                          <h5>{{$t('Product_Has_Imei_Serial_number')}}</h5>
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </ValidationProvider>
+                  </b-col>
+
+                   <!-- This_Product_Not_For_Selling -->
+                   <b-col md="12 mb-2">
+                    <ValidationProvider rules vid="product" v-slot="x">
+                      <div class="form-check">
+                        <label class="checkbox checkbox-outline-primary">
+                          <input type="checkbox" v-model="product.not_selling">
+                          <h5>{{$t('This_Product_Not_For_Selling')}}</h5>
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </ValidationProvider>
+                  </b-col>
+
                 </b-row>
               </b-card-body>
             </b-card>
@@ -328,26 +376,7 @@
                       />
                     </div>
                   </b-col>
-                  <!-- Multiple Variants -->
-                  <b-col md="12 mb-2">
-                    <div class="form-check">
-                      <label class="checkbox checkbox-outline-primary">
-                        <input type="checkbox" v-model="product.is_variant">
-                        <span>{{$t('ProductHasMultiVariants')}}</span>
-                        <span class="checkmark"></span>
-                      </label>
-                    </div>
-                  </b-col>
-                  <b-col md="12 mb-5" v-show="product.is_variant">
-                    <vue-tags-input
-                      placeholder="+ add"
-                      v-model="tag"
-                      :tags="variants"
-                      class="tag-custom text-15"
-                      @adding-duplicate="showNotifDuplicate()"
-                      @tags-changed="newTags => variants = newTags"
-                    />
-                  </b-col>
+
                 </b-row>
               </div>
             </b-card>
@@ -406,7 +435,9 @@ export default {
         stock_alert: "",
         image: "",
         note: "",
-        is_variant: false
+        is_variant: false,
+        is_imei: false,
+        not_selling: false,
       },
       code_exist: ""
     };
@@ -477,7 +508,7 @@ export default {
     GetElements() {
       let id = this.$route.params.id;
       axios
-        .get(`Products/${id}/edit`)
+        .get(`products/${id}/edit`)
         .then(response => {
           this.product = response.data.product;
           this.variants = response.data.product.ProductVariant;
@@ -500,7 +531,7 @@ export default {
     //---------------------- Get Sub Units with Unit id ------------------------------\\
     Get_Units_SubBase(value) {
       axios
-        .get("Get_Units_SubBase?id=" + value)
+        .get("get_sub_units_by_base?id=" + value)
         .then(({ data }) => (this.units_sub = data));
     },
 
@@ -549,7 +580,7 @@ export default {
 
       //send Data with axios
       axios
-        .post("Products/" + this.product.id, self.data)
+        .post("products/" + this.product.id, self.data)
         .then(response => {
           NProgress.done();
           self.SubmitProcessing = false;

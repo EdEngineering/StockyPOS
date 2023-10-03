@@ -1,11 +1,10 @@
 @component('mail::message')
 
-<h2 class="text-center">Purchase order </h2>
+<h3>Dear Mister or Madam,</h3>
 
-<h3>Hello {{ $data['supplier_name'] }}</h3>
-<h3>Purchase Number: {{ $data['Ref'] }}</h3>
-<h3>Review receipt in the attachment </h3>
+<h3>Please find your attached Purchase : {{ $data['Ref'] }} in PDF format.</h3>
+<h3>We thank you for the trust you show us.</h3>
 
-<span>Regards,<span><br>
-{{ config('app.name') }}
+<h3>Regards,<h3>
+<h3>{{ $data['company_name'] }}<h3>
 @endcomponent

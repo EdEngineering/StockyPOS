@@ -48,7 +48,7 @@ const mutations = {
         state.Permissions = Permissions;
     },
 
-
+   
     setUser(state, user) {
         state.user = user;
     },
@@ -78,7 +78,7 @@ const actions = {
 
     async refreshUserPermissions(context) {
 
-        await axios.get("GetUserAuth").then((userAuth) => {
+        await axios.get("get_user_auth").then((userAuth) => {
             let Permissions = userAuth.data.permissions
             let user = userAuth.data.user
             let notifs = userAuth.data.notifs
@@ -91,6 +91,7 @@ const actions = {
             context.commit('SetDefaultLanguage', default_language)
         }).catch(() => {
             context.commit('setPermissions', null)
+            context.commit('setallmodules', null)
             context.commit('setUser', null)
             context.commit('Notifs_alert', null)
             context.commit('SetDefaultLanguage', 'en')

@@ -19,6 +19,11 @@
       }"
       styleClass="table-hover tableOne vgt-table"
     >
+     <div slot="table-actions" class="mt-2 mb-3">
+        <b-button @click="export_PDF()" size="sm" variant="outline-success ripple m-1">
+          <i class="i-File-Copy"></i> PDF
+        </b-button>
+      </div>
 
      <template slot="table-row" slot-scope="props">
       
@@ -35,6 +40,8 @@
 <script>
 import NProgress from "nprogress";
 import { mapGetters } from "vuex";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default {
   metaInfo: {
@@ -102,6 +109,23 @@ export default {
   },
 
   methods: {
+
+     //----------------------------------- Export PDF ------------------------------\\
+    export_PDF() {
+      var self = this;
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Customer Name", dataKey: "name" },
+        { title: "Phone", dataKey: "phone" },
+        { title: "Email", dataKey: "email" },
+        { title: "Total Sales", dataKey: "total_sales" },
+        { title: "Total Amount", dataKey: "total" },
+      ];
+      pdf.autoTable(columns, self.customers);
+      pdf.text("Top Customers", 40, 25);
+      pdf.save("Top_Customers.pdf");
+    },
+
     //---- update Params Table
     updateParams(newProps) {
       this.serverParams = Object.assign({}, this.serverParams, newProps);

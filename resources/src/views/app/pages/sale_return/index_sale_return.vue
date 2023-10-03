@@ -1,6 +1,6 @@
 <template>
   <div class="main-content">
-    <breadcumb :page="$t('ListReturns')" :folder="$t('SalesReturn')"/>
+    <breadcumb :page="$t('SalesReturn')" :folder="$t('ListReturns')"/>
 
     <div v-if="isLoading" class="loading_page spinner spinner-primary mr-3"></div>
     <div v-else>
@@ -41,19 +41,17 @@
           <b-button @click="Sale_Return_PDF()" size="sm" variant="outline-success ripple m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Sale_Return_Excel()" size="sm" variant="outline-danger ripple m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
-          <router-link
-            class="btn-sm btn btn-primary ripple btn-icon m-1"
-            v-if="currentUserPermissions && currentUserPermissions.includes('Sale_Returns_add')"
-            to="/app/sale_return/store"
-          >
-            <span class="ul-btn__icon">
-              <i class="i-Add"></i>
-            </span>
-            <span class="ul-btn__text ml-1">{{$t('Add')}}</span>
-          </router-link>
+          <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="sales_return"
+              :columns="columns"
+              :file-name="'sales_return'"
+              :file-type="'xlsx'"
+              :sheet-name="'sales_return'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
+         
         </div>
 
         <template slot="table-row" slot-scope="props">
@@ -82,7 +80,7 @@
                 <b-dropdown-item
                   title="Edit"
                   v-if="currentUserPermissions.includes('Sale_Returns_edit')"
-                  :to="'/app/sale_return/edit/'+props.row.id"
+                  :to="'/app/sale_return/edit/'+props.row.id+'/'+props.row.sale_id"
                 >
                   <i class="nav-icon i-Pen-2 font-weight-bold mr-2"></i>
                   {{$t('EditReturn')}}
@@ -144,6 +142,20 @@
             >{{$t('partial')}}</span>
             <span v-else class="badge badge-outline-warning">{{$t('Unpaid')}}</span>
           </div>
+           <div v-else-if="props.column.field == 'Ref'">
+            <router-link
+              :to="'/app/sale_return/detail/'+props.row.id"
+            >
+              <span class="ul-btn__text ml-1">{{props.row.Ref}}</span>
+            </router-link>
+          </div>
+          <div v-else-if="props.column.field == 'sale_ref' && props.row.sale_id">
+            <router-link
+              :to="'/app/sales/detail/'+props.row.sale_id"
+            >
+              <span class="ul-btn__text ml-1">{{props.row.sale_ref}}</span>
+            </router-link>
+          </div>
         </template>
       </vue-good-table>
     </div>
@@ -163,6 +175,18 @@
           <b-col md="12">
             <b-form-group :label="$t('Reference')">
               <b-form-input label="Reference" :placeholder="$t('Reference')" v-model="Filter_Ref"></b-form-input>
+            </b-form-group>
+          </b-col>
+
+          <!-- sale  -->
+          <b-col md="12">
+            <b-form-group :label="$t('Sale')">
+              <v-select
+                :reduce="label => label.value"
+                :placeholder="$t('Choose_Sale_Ref')"
+                v-model="Filter_sale"
+                :options="sales.map(sales => ({label: sales.Ref, value: sales.id}))"
+              />
             </b-form-group>
           </b-col>
 
@@ -328,7 +352,7 @@
         <b-form @submit.prevent="Submit_Payment">
           <b-row>
             <!-- date -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <validation-provider
                 name="date"
                 :rules="{ required: true}"
@@ -348,7 +372,7 @@
             </b-col>
 
             <!-- Reference  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <b-form-group :label="$t('Reference')">
                 <b-form-input
                   disabled="disabled"
@@ -359,8 +383,35 @@
               </b-form-group>
             </b-col>
 
+            <!-- Payment choice -->
+            <b-col lg="4" md="12" sm="12">
+              <validation-provider name="Payment choice" :rules="{ required: true}">
+                <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice')">
+                  <v-select
+                    :class="{'is-invalid': !!errors.length}"
+                    :state="errors[0] ? false : (valid ? true : null)"
+                    v-model="facture.Reglement"
+                    @input="Selected_PaymentMethod"
+                    :reduce="label => label.value"
+                    :placeholder="$t('PleaseSelect')"
+                    :options="
+                          [
+                          {label: 'Cash', value: 'Cash'},
+                          {label: 'credit card', value: 'credit card'},
+                          {label: 'TPE', value: 'tpe'},
+                          {label: 'cheque', value: 'cheque'},
+                          {label: 'Western Union', value: 'Western Union'},
+                          {label: 'bank transfer', value: 'bank transfer'},
+                          {label: 'other', value: 'other'},
+                          ]"
+                  ></v-select>
+                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
+                </b-form-group>
+              </validation-provider>
+            </b-col>
+
               <!-- Received  Amount  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <validation-provider
                 name="Received Amount"
                 :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -383,7 +434,7 @@
           </b-col>
 
             <!-- Paying Amount  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <validation-provider
                 name="Amount"
                 :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -404,38 +455,11 @@
             </b-col>
 
             <!-- change Amount  -->
-            <b-col lg="6" md="12" sm="12">
+            <b-col lg="4" md="12" sm="12">
               <label>{{$t('Change')}} :</label>
               <p
                 class="change_amount"
               >{{parseFloat(facture.received_amount - facture.montant).toFixed(2)}}</p>
-            </b-col>
-
-
-            <!-- Payment choice -->
-            <b-col lg="6" md="12" sm="12">
-              <validation-provider name="Payment choice" :rules="{ required: true}">
-                <b-form-group slot-scope="{ valid, errors }" :label="$t('Paymentchoice')">
-                  <v-select
-                    :class="{'is-invalid': !!errors.length}"
-                    :state="errors[0] ? false : (valid ? true : null)"
-                    v-model="facture.Reglement"
-                    @input="Selected_PaymentMethod"
-                    :reduce="label => label.value"
-                    :placeholder="$t('PleaseSelect')"
-                    :options="
-                          [
-                          {label: 'Cash', value: 'Cash'},
-                          {label: 'credit card', value: 'credit card'},
-                          {label: 'cheque', value: 'cheque'},
-                          {label: 'Western Union', value: 'Western Union'},
-                          {label: 'bank transfer', value: 'bank transfer'},
-                          {label: 'other', value: 'other'},
-                          ]"
-                  ></v-select>
-                  <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
-                </b-form-group>
-              </validation-provider>
             </b-col>
 
             <!-- Note -->
@@ -493,6 +517,7 @@ export default {
       showDropdown: false,
       EditPaiementMode: false,
       Filter_Client: "",
+      Filter_sale:"",
       Filter_status: "",
       Filter_Payment: "",
       Filter_Ref: "",
@@ -503,6 +528,7 @@ export default {
       sales_return: [],
       sale_return: {},
       customers: [],
+      sales:[],
       warehouses: [],
       sale_return_id: "",
       factures: [],
@@ -568,6 +594,12 @@ export default {
         {
           label: this.$t("warehouse"),
           field: "warehouse_name",
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
+        {
+          label: this.$t("Sale_Ref"),
+          field: "sale_ref",
           tdClass: "text-left",
           thClass: "text-left"
         },
@@ -655,6 +687,8 @@ export default {
         field = "client_id";
       } else if (params[0].field == "warehouse_name") {
         field = "warehouse_id";
+      } else if (params[0].field == "sale_ref") {
+        field = "sale_id";
       } else {
         field = params[0].field;
       }
@@ -752,12 +786,13 @@ export default {
     Reset_Filter() {
       this.search = "";
       this.Filter_Client = "";
+      this.Filter_sale = "";
       this.Filter_status = "";
       this.Filter_Payment = "";
       this.Filter_Ref = "";
       this.Filter_date = "";
-      (this.Filter_warehouse = ""),
-        this.GET_Sales_Return(this.serverParams.page);
+      this.Filter_warehouse = "";
+      this.GET_Sales_Return(this.serverParams.page);
     },
 
     //---------------------------------------- Set To Strings-------------------------\\
@@ -771,6 +806,8 @@ export default {
         this.Filter_status = "";
       } else if (this.Filter_Payment === null) {
         this.Filter_Payment = "";
+      } else if (this.Filter_sale === null) {
+        this.Filter_sale = "";
       }
     },
 
@@ -795,7 +832,7 @@ export default {
       NProgress.set(0.1);
      
        axios
-        .get("Return_sale_PDF/" + id, {
+        .get("return_sale_pdf/" + id, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -827,7 +864,7 @@ export default {
       NProgress.set(0.1);
      
        axios
-        .get("payment_Return_sale_PDF/" + id, {
+        .get("payment_return_sale_pdf/" + id, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -857,6 +894,8 @@ export default {
       let columns = [
         { title: "Ref", dataKey: "Ref" },
         { title: "Client", dataKey: "client_name" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
+        { title: "sale_ref", dataKey: "sale_ref" },
         { title: "Status", dataKey: "statut" },
         { title: "Total", dataKey: "GrandTotal" },
         { title: "Paid", dataKey: "paid_amount" },
@@ -866,34 +905,6 @@ export default {
       pdf.autoTable(columns, self.sales_return);
       pdf.text("Sales Return List", 40, 25);
       pdf.save("Sales Return.pdf");
-    },
-
-    //--------------------------------------Returns Excel -----------------------\\
-    Sale_Return_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("returns/sale/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "Sales_Return.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
-        })
-        .catch(() => {
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
     },
 
     Number_Order_Payment() {
@@ -1113,6 +1124,8 @@ export default {
             this.Filter_Ref +
             "&date=" +
             this.Filter_date +
+            "&sale_id=" +
+            this.Filter_sale +
             "&client_id=" +
             this.Filter_Client +
             "&statut=" +
@@ -1133,6 +1146,7 @@ export default {
         .then(response => {
           this.sales_return = response.data.sale_Return;
           this.customers = response.data.customers;
+          this.sales = response.data.sales;
           this.warehouses = response.data.warehouses;
           this.totalRows = response.data.totalRows;
 
@@ -1313,20 +1327,24 @@ export default {
           axios
             .delete("payment/returns_sale/" + id)
             .then(() => {
-              this.$swal(
-                this.$t("Delete.Deleted"),
-                this.$t("Delete.PaymentDeleted")
+
+              this.makeToast(
+                "success",
+                this.$t("Delete.PaymentDeleted"),
+                this.$t("Delete.Deleted")
               );
+            
               Fire.$emit("Delete_payment_Return_sale");
             })
             .catch(() => {
               // Complete the animation of the  progress bar.
               setTimeout(() => NProgress.done(), 500);
-              this.$swal(
-                this.$t("Delete.Failed"),
+                this.makeToast(
+                "warning",
                 this.$t("Delete.Therewassomethingwronge"),
-                "warning"
+                this.$t("Delete.Failed")
               );
+              
             });
         }
       });
@@ -1342,27 +1360,27 @@ export default {
         this.GET_Sales_Return(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
+      }, 800);
         this.$bvModal.hide("Add_Payment");
-      }, 500);
     });
 
     Fire.$on("Update_payment_Return_sale", () => {
       setTimeout(() => {
-        this.Get_Payments(this.sale_return_id);
-        this.GET_Sales_Return(this.serverParams.page);
+      this.Get_Payments(this.sale_return.id);
+      this.GET_Sales_Return(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
-        this.$bvModal.hide("Add_Payment");
-      }, 500);
+      }, 800);
+      this.$bvModal.hide("Add_Payment");
     });
 
     Fire.$on("Delete_payment_Return_sale", () => {
       setTimeout(() => {
-        this.Get_Payments(this.sale_return_id);
         this.GET_Sales_Return(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
-      }, 500);
+      }, 800);
+        this.$bvModal.hide("Show_payment");
     });
 
     Fire.$on("Delete_Return_sale", () => {
@@ -1370,7 +1388,7 @@ export default {
         this.GET_Sales_Return(this.serverParams.page);
         // Complete the animation of the  progress bar.
         NProgress.done();
-      }, 500);
+      }, 800);
     });
   }
 };

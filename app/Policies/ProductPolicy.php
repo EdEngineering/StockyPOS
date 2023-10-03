@@ -97,6 +97,18 @@ class ProductPolicy
         return $user->hasRole($permission->roles);
     }
 
+    public function stock_report(User $user)
+    {
+        $permission = Permission::where('name', 'stock_report')->first();
+        return $user->hasRole($permission->roles);
+    }
+
+    public function product_report(User $user)
+    {
+        $permission = Permission::where('name', 'product_report')->first();
+        return $user->hasRole($permission->roles);
+    }
+
     /**
      * Determine whether the user can restore the model.
      *

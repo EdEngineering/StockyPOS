@@ -41,9 +41,16 @@
           <b-button @click="Transfer_PDF()" size="sm" variant="outline-success ripple m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Transfer_Excel()" size="sm" variant="outline-danger ripple m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+           <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="transfers"
+              :columns="columns"
+              :file-name="'transfers'"
+              :file-type="'xlsx'"
+              :sheet-name="'transfers'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
           <router-link
             class="btn-sm btn btn-primary ripple btn-icon m-1"
             v-if="currentUserPermissions && currentUserPermissions.includes('transfer_add')"
@@ -519,34 +526,6 @@ export default {
       pdf.autoTable(columns, self.transfers);
       pdf.text("Transfer List", 40, 25);
       pdf.save("Transfer_List.pdf");
-    },
-
-    //------------------------------------ Transfer Excel ------------------------------\\
-    Transfer_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("transfers/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Transfers.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        })
-        .catch(() => {
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
     },
 
     //---------------------------------- Delete Transfer ----------------------\\

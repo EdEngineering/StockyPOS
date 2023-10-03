@@ -47,74 +47,86 @@
                       ref="myData"
                       class="dropdown-menu-left rtl-ps-none notification-dropdown ps scroll"
                     >
-                      <div class="menu-icon-grid">
-                        <a @click="SetLocal('en')">
-                          <i title="en" class="flag-icon flag-icon-squared flag-icon-gb"></i> English
-                        </a>
-                        <a @click="SetLocal('fr')">
-                          <i title="fr" class="flag-icon flag-icon-squared flag-icon-fr"></i>
-                          <span class="title-lang">French</span>
-                        </a>
-                        <a @click="SetLocal('ar')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-sa"></i>
-                          <span class="title-lang">Arabic</span>
-                        </a>
-                        <a @click="SetLocal('tur')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-tr"></i>
-                          <span class="title-lang">Turkish</span>
-                        </a>
+                     <div class="menu-icon-grid">
+              <a @click="SetLocal('en')">
+                <i title="en" class="flag-icon flag-icon-squared flag-icon-gb"></i> English
+              </a>
+              <a @click="SetLocal('fr')">
+                <i title="fr" class="flag-icon flag-icon-squared flag-icon-fr"></i>
+                <span class="title-lang">French</span>
+              </a>
+              <a @click="SetLocal('ar')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-sa"></i>
+                <span class="title-lang">Arabic</span>
+              </a>
+              <a @click="SetLocal('tur')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-tr"></i>
+                <span class="title-lang">Turkish</span>
+              </a>
 
-                        <a @click="SetLocal('sm_ch')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-cn"></i>
-                          <span class="title-lang">Simplified Chinese</span>
-                        </a>
+              <a @click="SetLocal('sm_ch')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-cn"></i>
+                <span class="title-lang">Simplified Chinese</span>
+              </a>
 
-                        <a @click="SetLocal('thai')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-tw"></i>
-                          <span class="title-lang">Thaï</span>
-                        </a>
+              <a @click="SetLocal('thai')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-th"></i>
+                <span class="title-lang">Thaï</span>
+              </a>
 
-                        <a @click="SetLocal('hn')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-in"></i>
-                          <span class="title-lang">Hindi</span>
-                        </a>
+              <a @click="SetLocal('hn')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-in"></i>
+                <span class="title-lang">Hindi</span>
+              </a>
 
-                        <a @click="SetLocal('de')">
-                          <i title="de" class="flag-icon flag-icon-squared flag-icon-de"></i>
-                          <span class="title-lang">German</span>
-                        </a>
-                        <a @click="SetLocal('es')">
-                          <i title="es" class="flag-icon flag-icon-squared flag-icon-es"></i>
-                          <span class="title-lang">Spanish</span>
-                        </a>
-                        <a @click="SetLocal('it')">
-                          <i title="it" class="flag-icon flag-icon-squared flag-icon-it"></i>
-                          <span class="title-lang">Italien</span>
-                        </a>
-                        <a @click="SetLocal('Ind')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-id"></i>
-                          <span class="title-lang">Indonesian</span>
-                        </a>
+              <a @click="SetLocal('de')">
+                <i title="de" class="flag-icon flag-icon-squared flag-icon-de"></i>
+                <span class="title-lang">German</span>
+              </a>
+              <a @click="SetLocal('es')">
+                <i title="es" class="flag-icon flag-icon-squared flag-icon-es"></i>
+                <span class="title-lang">Spanish</span>
+              </a>
+              <a @click="SetLocal('it')">
+                <i title="it" class="flag-icon flag-icon-squared flag-icon-it"></i>
+                <span class="title-lang">Italien</span>
+              </a>
+              <a @click="SetLocal('Ind')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-id"></i>
+                <span class="title-lang">Indonesian</span>
+              </a>
 
-                        <a @click="SetLocal('tr_ch')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-cn"></i>
-                          <span class="title-lang">Traditional Chinese</span>
-                        </a>
+              <a @click="SetLocal('tr_ch')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-cn"></i>
+                <span class="title-lang">Traditional Chinese</span>
+              </a>
 
-                        <a @click="SetLocal('ru')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-ru"></i>
-                          <span class="title-lang">Russian</span>
-                        </a>
+              <a @click="SetLocal('ru')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-ru"></i>
+                <span class="title-lang">Russian</span>
+              </a>
 
-                        <a @click="SetLocal('vn')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-vn"></i>
-                          <span class="title-lang">Vietnamese</span>
-                        </a>
-                        <a @click="SetLocal('kr')">
-                          <i title="sa" class="flag-icon flag-icon-squared flag-icon-kr"></i>
-                          <span class="title-lang">Korean</span>
-                        </a>
-                      </div>
+              <a @click="SetLocal('vn')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-vn"></i>
+                <span class="title-lang">Vietnamese</span>
+              </a>
+
+              <a @click="SetLocal('kr')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-kr"></i>
+                <span class="title-lang">Korean</span>
+              </a>
+             
+              <a @click="SetLocal('ba')">
+                <i title="sa" class="flag-icon flag-icon-squared flag-icon-bd"></i>
+                <span class="title-lang">Bangla</span>
+              </a>
+
+              <a @click="SetLocal('br')">
+                <i title="pt" class="flag-icon flag-icon-squared flag-icon-pt"></i>
+                <span class="title-lang">Portuguese</span>
+              </a>
+
+            </div>
                     </vue-perfect-scrollbar>
                   </b-dropdown>
                 </div>
@@ -229,7 +241,7 @@
                                   <span>{{detail.code}}</span>
                                   <br>
                                   <span class="badge badge-success">{{detail.name}}</span>
-                                  <i @click="Modal_Update_Detail(detail)" class="i-Edit"></i>
+                                  <i @click="Modal_Updat_Detail(detail)" class="i-Edit"></i>
                                 </td>
                                 <td>{{currentUser.currency}} {{formatNumber(detail.Total_price, 2)}}</td>
                                 <td>
@@ -279,7 +291,7 @@
                     <b-row>
                       <b-col md="12">
                         <div class="grandtotal">
-                          <span>{{$t("Total")}} : {{currentUser.currency}} {{GrandTotal.toFixed(2)}}</span>
+                          <span>{{$t("Total_Payable")}} : {{currentUser.currency}} {{GrandTotal.toFixed(2)}}</span>
                         </div>
                       </b-col>
 
@@ -366,7 +378,7 @@
                         </b-button>
                       </b-col>
                       <b-col md="6" sm="12">
-                        <b-button type="submit" variant="primary ripple mt-1 btn-rounded btn-block">
+                        <b-button type="submit" variant="success ripple mt-1 btn-rounded btn-block">
                           <i class="i-Checkout"></i>
                           {{ $t("payNow") }}
                         </b-button>
@@ -379,11 +391,11 @@
 
             <!-- Update Detail Product -->
             <validation-observer ref="Update_Detail">
-              <b-modal hide-footer size="md" id="form_Update_Detail" :title="detail.name">
+              <b-modal hide-footer size="lg" id="form_Update_Detail" :title="detail.name">
                 <b-form @submit.prevent="submit_Update_Detail">
                   <b-row>
                     <!-- Unit Price -->
-                    <b-col lg="12" md="12" sm="12">
+                    <b-col lg="6" md="6" sm="12">
                       <validation-provider
                         name="Product Price"
                         :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -404,7 +416,7 @@
                     </b-col>
 
                     <!-- Tax Method -->
-                    <b-col lg="12" md="12" sm="12">
+                   <b-col lg="6" md="6" sm="12">
                       <validation-provider name="Tax Method" :rules="{ required: true}">
                         <b-form-group slot-scope="{ valid, errors }" :label="$t('TaxMethod') + ' ' + '*'">
                           <v-select
@@ -425,7 +437,7 @@
                     </b-col>
 
                     <!-- Tax -->
-                    <b-col lg="12" md="12" sm="12">
+                    <b-col lg="6" md="6" sm="12">
                       <validation-provider
                         name="Tax"
                         :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -448,7 +460,7 @@
                     </b-col>
 
                     <!-- Discount Method -->
-                    <b-col lg="12" md="12" sm="12">
+                   <b-col lg="6" md="6" sm="12">
                       <validation-provider name="Discount Method" :rules="{ required: true}">
                         <b-form-group slot-scope="{ valid, errors }" :label="$t('Discount_Method') + ' ' + '*'">
                           <v-select
@@ -469,7 +481,7 @@
                     </b-col>
 
                     <!-- Discount Rate -->
-                    <b-col lg="12" md="12" sm="12">
+                    <b-col lg="6" md="6" sm="12">
                       <validation-provider
                         name="Discount Rate"
                         :rules="{ required: true , regex: /^\d*\.?\d*$/}"
@@ -490,7 +502,7 @@
                     </b-col>
 
                     <!-- Unit Sale -->
-                    <b-col lg="12" md="12" sm="12">
+                   <b-col lg="6" md="6" sm="12">
                       <validation-provider name="Unit Sale" :rules="{ required: true}">
                         <b-form-group slot-scope="{ valid, errors }" :label="$t('UnitSale') + ' ' + '*'">
                           <v-select
@@ -505,6 +517,17 @@
                         </b-form-group>
                       </validation-provider>
                     </b-col>
+
+                     <!-- Imei or serial numbers -->
+                    <b-col lg="12" md="12" sm="12" v-show="detail.is_imei">
+                      <b-form-group :label="$t('Add_product_IMEI_Serial_number')">
+                        <b-form-input
+                          label="Add_product_IMEI_Serial_number"
+                          v-model="detail.imei_number"
+                          :placeholder="$t('Add_product_IMEI_Serial_number')"
+                        ></b-form-input>
+                      </b-form-group>
+                  </b-col>
 
                     <b-col md="12">
                       <b-form-group>
@@ -538,7 +561,6 @@
 
                <!-- Product -->
                 <b-col md="12" class="mt-2 mb-2">
-                  <h6>{{$t('ProductName')}}</h6>
                  
                   <div id="autocomplete" class="autocomplete">
                     <input 
@@ -763,25 +785,30 @@
                 <tbody>
                   <tr v-for="detail_invoice in invoice_pos.details">
                     <td colspan="3">
-                      <span>
-                        {{detail_invoice.name}}
+                      {{detail_invoice.name}}
+                       <br v-show="detail_invoice.is_imei && detail_invoice.imei_number !==null">
+                        <span v-show="detail_invoice.is_imei && detail_invoice.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail_invoice.imei_number}}</span>
                         <br>
-                        {{formatNumber(detail_invoice.quantity,2)}} {{detail_invoice.unit_sale}} x {{formatNumber(detail_invoice.total/detail_invoice.quantity,2)}}
-                      </span>
+                        <span>{{formatNumber(detail_invoice.quantity,2)}} {{detail_invoice.unit_sale}} x {{formatNumber(detail_invoice.total/detail_invoice.quantity,2)}}</span>
                     </td>
                     <td
                       style="text-align:right;vertical-align:bottom"
                     >{{formatNumber(detail_invoice.total,2)}}</td>
                   </tr>
 
-                  <tr style="margin-top:10px">
+                  <tr style="margin-top:10px" v-show="pos_settings.show_discount">
                     <td colspan="3" class="total">{{$t('OrderTax')}}</td>
                     <td style="text-align:right;" class="total">{{invoice_pos.symbol}} {{formatNumber(invoice_pos.sale.taxe ,2)}} ({{formatNumber(invoice_pos.sale.tax_rate,2)}} %)</td>
                   </tr>
 
-                  <tr style="margin-top:10px">
+                  <tr style="margin-top:10px" v-show="pos_settings.show_discount">
                     <td colspan="3" class="total">{{$t('Discount')}}</td>
                     <td style="text-align:right;" class="total">{{invoice_pos.symbol}} {{formatNumber(invoice_pos.sale.discount ,2)}}</td>
+                  </tr>
+
+                  <tr style="margin-top:10px" v-show="pos_settings.show_discount">
+                    <td colspan="3" class="total">{{$t('Shipping')}}</td>
+                    <td style="text-align:right;" class="total">{{invoice_pos.symbol}} {{formatNumber(invoice_pos.sale.shipping ,2)}}</td>
                   </tr>
 
                   <tr style="margin-top:10px">
@@ -939,6 +966,7 @@
                               [
                               {label: 'Cash', value: 'Cash'},
                               {label: 'credit card', value: 'credit card'},
+                              {label: 'TPE', value: 'tpe'},
                               {label: 'cheque', value: 'cheque'},
                               {label: 'Western Union', value: 'Western Union'},
                               {label: 'bank transfer', value: 'bank transfer'},
@@ -964,9 +992,9 @@
                       </form>
                     </b-col>
 
-                    <!-- Note -->
+                    <!-- payment Note -->
                     <b-col lg="12" md="12" sm="12" class="mt-2">
-                      <b-form-group :label="$t('Note')">
+                      <b-form-group :label="$t('Payment_note')">
                         <b-form-textarea
                           id="textarea"
                           v-model="payment.notes"
@@ -975,6 +1003,20 @@
                         ></b-form-textarea>
                       </b-form-group>
                     </b-col>
+
+                    <!-- sale Note -->
+                    <b-col lg="12" md="12" sm="12" class="mt-2">
+                      <b-form-group :label="$t('sale_note')">
+                        <b-form-textarea
+                          id="textarea"
+                          v-model="sale.notes"
+                          rows="3"
+                          max-rows="6"
+                        ></b-form-textarea>
+                      </b-form-group>
+                    </b-col>
+
+
                   </b-row>
                 </b-col>
 
@@ -1007,7 +1049,7 @@
                       </b-list-group-item>
 
                       <b-list-group-item class="d-flex justify-content-between align-items-center">
-                        {{$t('Total')}}
+                        {{$t('Total_Payable')}}
                         <span
                           class="font-weight-bold"
                         >{{currentUser.currency}} {{GrandTotal.toFixed(2)}}</span>
@@ -1057,22 +1099,13 @@
 
                 <!-- Customer Email -->
                 <b-col md="6" sm="12">
-                  <validation-provider
-                    name="Email customer"
-                    :rules="{ required: true}"
-                    v-slot="validationContext"
-                  >
-                    <b-form-group :label="$t('Email') + ' ' + '*'">
+                    <b-form-group :label="$t('Email')">
                       <b-form-input
-                        :state="getValidationState(validationContext)"
-                        aria-describedby="Email-feedback"
-                        label="Email"
+                        label="email"
                         v-model="client.email"
-                         :placeholder="$t('Email')"
+                        :placeholder="$t('Email')"
                       ></b-form-input>
-                      <b-form-invalid-feedback id="Email-feedback">{{ validationContext.errors[0] }}</b-form-invalid-feedback>
                     </b-form-group>
-                  </validation-provider>
                 </b-col>
 
                 <!-- Customer Phone -->
@@ -1108,14 +1141,28 @@
                     </b-form-group>
                 </b-col>
 
-                <!-- Customer Adress -->
+                 <!-- Customer Tax Number -->
                 <b-col md="6" sm="12">
-                    <b-form-group :label="$t('Adress')">
+                    <b-form-group :label="$t('Tax_Number')">
                       <b-form-input
-                        label="Adress"
-                        v-model="client.adresse"
-                         :placeholder="$t('Adress')"
+                        label="Tax Number"
+                        v-model="client.tax_number"
+                        :placeholder="$t('Tax_Number')"
                       ></b-form-input>
+                    </b-form-group>
+                </b-col>
+
+
+                  <!-- Customer Adress -->
+                <b-col md="12" sm="12">
+                    <b-form-group :label="$t('Adress')">
+                      <textarea
+                        label="Adress"
+                        class="form-control"
+                        rows="4"
+                        v-model="client.adresse"
+                        :placeholder="$t('Adress')"
+                    ></textarea>
                     </b-form-group>
                 </b-col>
 
@@ -1139,7 +1186,6 @@ import VueBarcode from "vue-barcode";
 import FlagIcon from "vue-flag-icon";
 import Util from "./../../../utils";
 import { loadStripe } from "@stripe/stripe-js";
-
 export default {
   components: {
     vueEasyPrint,
@@ -1167,6 +1213,8 @@ export default {
         "hn",
         "vn",
         "kr",
+        "ba",
+        "br",
       ],
       stripe: {},
       stripe_key: "",
@@ -1230,14 +1278,14 @@ export default {
           CompanyPhone: ""
         }
       },
-
       sale: {
         warehouse_id: "",
         client_id: "",
         tax_rate: 0,
         shipping: 0,
         discount: 0,
-        TaxNet: 0
+        TaxNet: 0,
+        notes:'',
       },
       client: {
         id: "",
@@ -1246,6 +1294,7 @@ export default {
         email: "",
         phone: "",
         country: "",
+        tax_number: "",
         city: "",
         adresse: ""
       },
@@ -1274,16 +1323,16 @@ export default {
         taxe: "",
         tax_percent: "",
         tax_method: "",
-        product_variant_id: ""
+        product_variant_id: "",
+        is_imei: "",
+        imei_number:"",
       },
       sound: "/audio/Beep.wav",
       audio: new Audio("/audio/Beep.wav")
     };
   },
-
   computed: {
     ...mapGetters(["currentUser", "currentUserPermissions"]),
-
     brand_totalRows() {
       return this.brands.length;
     },
@@ -1291,43 +1340,34 @@ export default {
       return this.categories.length;
     }
   },
-
   mounted() {
     this.changeSidebarProperties();
     this.paginate_products(this.product_perPage, 0);
   },
-
   methods: {
     ...mapActions(["changeSidebarProperties", "changeThemeMode", "logout"]),
     ...mapGetters(["currentUser"]),
     logoutUser() {
       this.$store.dispatch("logout");
     },
-
     async loadStripe_payment() {
       this.stripe = await loadStripe(`${this.stripe_key}`);
       const elements = this.stripe.elements();
-
       this.cardElement = elements.create("card", {
         classes: {
           base:
             "bg-gray-100 rounded border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 p-3 leading-8 transition-colors duration-200 ease-in-out"
         }
       });
-
       this.cardElement.mount("#card-element");
     },
-
      handleFocus() {
       this.focused = true
     },
-
     handleBlur() {
       this.focused = false
     },
-
     //---------------------- Event Select Payment Method ------------------------------\\
-
     Selected_PaymentMethod(value) {
       if (value == "credit card") {
         setTimeout(() => {
@@ -1335,25 +1375,21 @@ export default {
         }, 500);
       }
     },
-
     SetLocal(locale) {
       this.$i18n.locale = locale;
       this.$store.dispatch("language/setLanguage", locale);
       Fire.$emit("ChangeLanguage");
     },
-
     handleFullScreen() {
       Util.toggleFullScreen();
     },
     logoutUser() {
       this.logout();
     },
-
     // ------------------------ Paginate Products --------------------\\
     Product_paginatePerPage() {
       this.paginate_products(this.product_perPage, 0);
     },
-
     paginate_products(pageSize, pageNumber) {
       let itemsToParse = this.products;
       this.paginated_Products = itemsToParse.slice(
@@ -1361,18 +1397,14 @@ export default {
         (pageNumber + 1) * pageSize
       );
     },
-
     Product_onPageChanged(page) {
       this.paginate_products(this.product_perPage, page - 1);
       this.getProducts(page);
     },
-
     // ------------------------ Paginate Brands --------------------\\
-
     BrandpaginatePerPage() {
       this.paginate_Brands(this.brand_perPage, 0);
     },
-
     paginate_Brands(pageSize, pageNumber) {
       let itemsToParse = this.brands;
       this.paginated_Brands = itemsToParse.slice(
@@ -1380,17 +1412,13 @@ export default {
         (pageNumber + 1) * pageSize
       );
     },
-
     BrandonPageChanged(page) {
       this.paginate_Brands(this.brand_perPage, page - 1);
     },
-
     // ------------------------ Paginate Categories --------------------\\
-
     Category_paginatePerPage() {
       this.paginate_Category(this.category_perPage, 0);
     },
-
     paginate_Category(pageSize, pageNumber) {
       let itemsToParse = this.categories;
       this.paginated_Category = itemsToParse.slice(
@@ -1398,11 +1426,9 @@ export default {
         (pageNumber + 1) * pageSize
       );
     },
-
     Category_onPageChanged(page) {
       this.paginate_Category(this.category_perPage, page - 1);
     },
-
     //--- Submit Validate Create Sale
     Submit_Pos() {
       // Start the progress bar.
@@ -1452,7 +1478,6 @@ export default {
         }
       });
     },
-
     //------ Validate Form Submit_Payment
     Submit_Payment() {
       // Start the progress bar.
@@ -1492,7 +1517,6 @@ export default {
         }
       });
     },
-
     //------------- Submit Validation Create & Edit Customer
     Submit_Customer() {
       // Start the progress bar.
@@ -1511,7 +1535,6 @@ export default {
         }
       });
     },
-
     //---------------------------------------- Create new Customer -------------------------------\\
     Create_Client() {
       axios
@@ -1519,6 +1542,7 @@ export default {
           name: this.client.name,
           email: this.client.email,
           phone: this.client.phone,
+          tax_number: this.client.tax_number,
           country: this.client.country,
           city: this.client.city,
           adresse: this.client.adresse
@@ -1538,13 +1562,11 @@ export default {
           this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
         });
     },
-
     //------------------------------ New Model (create Customer) -------------------------------\\
     New_Client() {
       this.reset_Form_client();
       this.$bvModal.show("New_Customer");
     },
-
     //-------------------------------- reset Form -------------------------------\\
     reset_Form_client() {
       this.client = {
@@ -1552,24 +1574,22 @@ export default {
         name: "",
         email: "",
         phone: "",
+        tax_number: "",
         country: "",
         city: "",
         adresse: ""
       };
     },
-
     //------------------------------------ Get Clients Without Paginate -------------------------\\
     Get_Client_Without_Paginate() {
       axios
-        .get("Get_Clients_Without_Paginate")
+        .get("get_clients_without_paginate")
         .then(({ data }) => (this.clients = data));
     },
-
     //---Validate State Fields
     getValidationState({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null;
     },
-
     //------ Toast
     makeToast(variant, msg, title) {
       this.$root.$bvToast.toast(msg, {
@@ -1578,7 +1598,6 @@ export default {
         solid: true
       });
     },
-
     //---------------------- Event Select Warehouse ------------------------------\\
     Selected_Warehouse(value) {
       this.search_input= '';
@@ -1586,30 +1605,25 @@ export default {
       this.Get_Products_By_Warehouse(value);
       this.getProducts(1);
     },
-
     //------------------------------------ Get Products By Warehouse -------------------------\\
-
     Get_Products_By_Warehouse(id) {
       // Start the progress bar.
         NProgress.start();
         NProgress.set(0.1);
       axios
-        .get("Products/Warehouse/" + id + "?stock=" + 1)
+        .get("get_Products_by_warehouse/" + id + "?stock=" + 1 + "&is_sale=" + 1)
          .then(response => {
             this.products_pos = response.data;
              NProgress.done();
-
             })
           .catch(error => {
           });
     },
-
     //----------------------------------------- Add Detail of Sale -------------------------\\
     add_product(code) {
       this.audio.play();
       if (this.details.some(detail => detail.code === code)) {
         this.increment_qty_scanner(code);
-        // this.makeToast("warning", this.$t("AlreadyAdd"), this.$t("Warning"));
         // Complete the animation of theprogress bar.
         NProgress.done();
       } else {
@@ -1619,27 +1633,27 @@ export default {
           this.product.detail_id = 1;
         }
         this.details.push(this.product);
+        if(this.product.is_imei){
+          this.Modal_Updat_Detail(this.product);
+        }
       }
     },
-
     //-------------------------------- order detail id -------------------------\\
     order_detail_id() {
       this.product.detail_id = 0;
       var len = this.details.length;
       this.product.detail_id = this.details[len - 1].detail_id + 1;
     },
-
-    //---------------------- Get_sales_units ------------------------------\\
-    Get_sales_units(value) {
+    //---------------------- get_units ------------------------------\\
+    get_units(value) {
       axios
-        .get("Get_sales_units?id=" + value)
+        .get("get_units?id=" + value)
         .then(({ data }) => (this.units = data));
     },
-
     //------ Show Modal Update Detail Product
-    Modal_Update_Detail(detail) {
+    Modal_Updat_Detail(detail) {
       this.detail = {};
-      this.Get_sales_units(detail.product_id);
+      this.get_units(detail.product_id);
       this.detail.detail_id = detail.detail_id;
       this.detail.sale_unit_id = detail.sale_unit_id;
       this.detail.name = detail.name;
@@ -1652,11 +1666,13 @@ export default {
       this.detail.discount = detail.discount;
       this.detail.quantity = detail.quantity;
       this.detail.tax_percent = detail.tax_percent;
-      this.$bvModal.show("form_Update_Detail");
+      this.detail.is_imei = detail.is_imei;
+      this.detail.imei_number = detail.imei_number;
+       setTimeout(() => {
+        this.$bvModal.show("form_Update_Detail");
+      }, 1000);
     },
-
     //------ Submit Update Detail Product
-
     Update_Detail() {
       for (var i = 0; i < this.details.length; i++) {
         if (this.details[i].detail_id === this.detail.detail_id) {
@@ -1674,20 +1690,18 @@ export default {
               }
             }
           }
-
           if (this.details[i].current < this.details[i].quantity) {
             this.details[i].quantity = this.details[i].current;
           } else {
             this.details[i].quantity = 1;
           }
-
           this.details[i].Unit_price = this.detail.Unit_price;
           this.details[i].tax_percent = this.detail.tax_percent;
           this.details[i].tax_method = this.detail.tax_method;
           this.details[i].discount_Method = this.detail.discount_Method;
           this.details[i].discount = this.detail.discount;
           this.details[i].sale_unit_id = this.detail.sale_unit_id;
-
+          this.details[i].imei_number = this.detail.imei_number;
           if (this.details[i].discount_Method == "2") {
             //Fixed
             this.details[i].DiscountNet = this.details[i].discount;
@@ -1697,13 +1711,11 @@ export default {
               (this.details[i].Unit_price * this.details[i].discount) / 100
             );
           }
-
           if (this.details[i].tax_method == "1") {
             //Exclusive
             this.details[i].Net_price = parseFloat(
               this.details[i].Unit_price - this.details[i].DiscountNet
             );
-
             this.details[i].taxe = parseFloat(
               (this.details[i].tax_percent *
                 (this.details[i].Unit_price - this.details[i].DiscountNet)) /
@@ -1718,7 +1730,6 @@ export default {
               (this.details[i].Unit_price - this.details[i].DiscountNet) /
                 (this.details[i].tax_percent / 100 + 1)
             );
-
             this.details[i].taxe = parseFloat(
               this.details[i].Unit_price -
                 this.details[i].Net_price -
@@ -1728,14 +1739,14 @@ export default {
               this.details[i].Net_price + this.details[i].taxe
             );
           }
-
           this.$forceUpdate();
         }
       }
       this.CaclulTotal();
-      this.$bvModal.hide("form_Update_Detail");
+       setTimeout(() => {
+        this.$bvModal.hide("form_Update_Detail");
+      }, 1000);
     },
-
     //-- check Qty of  details order if Null or zero
     verifiedForm() {
       if (this.details.length <= 0) {
@@ -1755,17 +1766,14 @@ export default {
             count += 1;
           }
         }
-
         if (count > 0) {
           this.makeToast("warning", this.$t("AddQuantity"), this.$t("Warning"));
-
           return false;
         } else {
           return true;
         }
       }
     },
-
     //------------------------------ Print -------------------------\\
     print_pos() {
       var divContents = document.getElementById("invoice-POS").innerHTML;
@@ -1777,16 +1785,19 @@ export default {
       a.document.write(divContents);
       a.document.write("</body></html>");
       a.document.close();
-      a.print();
-    },
 
+      setTimeout(() => {
+         a.print();
+      }, 1000);
+
+    },
     //-------------------------------- Invoice POS ------------------------------\\
     Invoice_POS(id) {
       // Start the progress bar.
       NProgress.start();
       NProgress.set(0.1);
       axios
-        .get("Sales/Print_Invoice/" + id)
+        .get("sales_print_invoice/" + id)
         .then(response => {
           this.invoice_pos = response.data;
           this.payments = response.data.payments;
@@ -1796,30 +1807,28 @@ export default {
             NProgress.done();
             this.$bvModal.show("Show_invoice");
           }, 500);
-          setTimeout(() => this.print_pos(), 1000);
+
+          if(response.data.pos_settings.is_printable){
+            setTimeout(() => this.print_pos(), 1000);
+          }
         })
         .catch(() => {
           // Complete the animation of the  progress bar.
           setTimeout(() => NProgress.done(), 500);
         });
     },
-
     //----------------------------------Process Payment ------------------------------\\
-
     async processPayment() {
       this.paymentProcessing = true;
-
       const { token, error } = await this.stripe.createToken(this.cardElement);
-
       if (error) {
         this.paymentProcessing = false;
         NProgress.done();
         this.makeToast("danger", this.$t("InvalidData"), this.$t("Failed"));
       } else {
-
         
         axios
-          .post("pos/CreatePOS", {
+          .post("pos/create_pos", {
             client_id: this.sale.client_id,
             warehouse_id: this.sale.warehouse_id,
             tax_rate: this.sale.tax_rate?this.sale.tax_rate:0,
@@ -1852,7 +1861,6 @@ export default {
           });
       }
     },
-
     //----------------------------------Create POS ------------------------------\\
     CreatePOS() {
       NProgress.start();
@@ -1871,13 +1879,14 @@ export default {
       } else {
         this.paymentProcessing = true;
         axios
-          .post("pos/CreatePOS", {
+          .post("pos/create_pos", {
             client_id: this.sale.client_id,
             warehouse_id: this.sale.warehouse_id,
             tax_rate: this.sale.tax_rate?this.sale.tax_rate:0,
             TaxNet: this.sale.TaxNet?this.sale.TaxNet:0,
             discount: this.sale.discount?this.sale.discount:0,
             shipping: this.sale.shipping?this.sale.shipping:0,
+            notes: this.sale.notes,
             details: this.details,
             GrandTotal: this.GrandTotal,
             payment: this.payment,
@@ -1903,7 +1912,6 @@ export default {
           });
       }
     },
-
     //------------------------------Formetted Numbers -------------------------\\
     formatNumber(number, dec) {
       const value = (typeof number === "string"
@@ -1917,11 +1925,9 @@ export default {
       while (formated.length < dec) formated += "0";
       return `${value[0]}.${formated}`;
     },
-
     //---------------------------------Get Product Details ------------------------\\
-
     Get_Product_Details(product, product_id) {
-      axios.get("Products/" + product_id).then(response => {
+      axios.get("products/" + product_id).then(response => {
         this.product.discount = 0;
         this.product.DiscountNet = 0;
         this.product.discount_Method = "2";
@@ -1938,13 +1944,14 @@ export default {
         this.product.code = product.code;
         this.product.fix_price = response.data.fix_price;
         this.product.sale_unit_id = response.data.sale_unit_id;
+        this.product.is_imei = response.data.is_imei;
+        this.product.imei_number = '';
         this.add_product(product.code);
         this.CaclulTotal();
         // Complete the animation of theprogress bar.
         NProgress.done();
       });
     },
-
     //----------- Calcul Total
     CaclulTotal() {
       this.total = 0;
@@ -1953,7 +1960,6 @@ export default {
         this.details[i].subtotal = parseFloat(
           this.details[i].quantity * this.details[i].Net_price + tax
         );
-
         this.total = parseFloat(this.total + this.details[i].subtotal);
       }
       const total_without_discount = parseFloat(
@@ -1965,11 +1971,9 @@ export default {
       this.GrandTotal = parseFloat(
         total_without_discount + this.sale.TaxNet + this.sale.shipping
       );
-
       var grand_total =  this.GrandTotal.toFixed(2);
       this.GrandTotal = parseFloat(grand_total);
     },
-
     //-------Verified QTY
     Verified_Qty(detail, id) {
       for (var i = 0; i < this.details.length; i++) {
@@ -1988,7 +1992,6 @@ export default {
       this.$forceUpdate();
       this.CaclulTotal();
     },
-
     //----------------------------------- Increment QTY with barcode scanner ------------------------------\\
     increment_qty_scanner(code) {
       for (var i = 0; i < this.details.length; i++) {
@@ -2003,7 +2006,6 @@ export default {
       this.CaclulTotal();
       this.$forceUpdate();
     },
-
     //----------------------------------- Increment QTY ------------------------------\\
     increment(id) {
       for (var i = 0; i < this.details.length; i++) {
@@ -2018,7 +2020,6 @@ export default {
       this.CaclulTotal();
       this.$forceUpdate();
     },
-
     //----------------------------------- decrement QTY ------------------------------\\
     decrement(detail, id) {
       for (var i = 0; i < this.details.length; i++) {
@@ -2033,7 +2034,6 @@ export default {
       this.CaclulTotal();
       this.$forceUpdate();
     },
-
   
     //---------- keyup OrderTax
     keyup_OrderTax() {
@@ -2046,9 +2046,7 @@ export default {
         this.CaclulTotal();
       }
     },
-
     //---------- keyup Discount
-
     keyup_Discount() {
       if (isNaN(this.sale.discount)) {
         this.sale.discount = 0;
@@ -2059,9 +2057,7 @@ export default {
         this.CaclulTotal();
       }
     },
-
     //---------- keyup Shipping
-
     keyup_Shipping() {
       if (isNaN(this.sale.shipping)) {
         this.sale.shipping = 0;
@@ -2072,9 +2068,7 @@ export default {
         this.CaclulTotal();
       }
     },
-
     //---------- keyup paid Amount
-
     Verified_paidAmount() {
       if (isNaN(this.payment.amount)) {
         this.payment.amount = 0;
@@ -2097,15 +2091,12 @@ export default {
         }
       }
     },
-
     //---------- keyup Received Amount
-
     Verified_Received_Amount() {
       if (isNaN(this.payment.received_amount)) {
         this.payment.received_amount = 0;
       } 
     },
-
     //-----------------------------------Delete Detail Product ------------------------------\\
     delete_Product_Detail(id) {
       for (var i = 0; i < this.details.length; i++) {
@@ -2115,7 +2106,6 @@ export default {
         }
       }
     },
-
     //----------Reset Pos
     Reset_Pos() {
       this.details = [];
@@ -2136,18 +2126,13 @@ export default {
       this.brand_id = "";
       this.getProducts(1);
     },
-
     //------------------------- get Result Value Search Product
-
     getResultValue(result) {
       return result.code + " " + "(" + result.name + ")";
     },
-
     //------------------------- Submit Search Product
-
     SearchProduct(result) {
       this.product = {};
-
       this.product.code = result.code;
       this.product.current = result.qte_sale;
       this.product.fix_stock = result.qte;
@@ -2158,23 +2143,17 @@ export default {
       }
       this.product.product_variant_id = result.product_variant_id;
       this.Get_Product_Details(result, result.id);
-
       this.search_input= '';
       this.$refs.product_autocomplete.value = "";
       this.product_filter = [];
     },
-
-
       // Search Products
     search(){
-
       if (this.timer) {
             clearTimeout(this.timer);
             this.timer = null;
       }
-
       if (this.search_input.length < 1) {
-
         return this.product_filter= [];
       }
       if (this.sale.warehouse_id != "" &&  this.sale.warehouse_id != null) {
@@ -2199,13 +2178,9 @@ export default {
           this.$t("Warning")
         );
       }
-
     },
-
    
-
     //---------------------------------- Check if Product Exist in Order List ---------------------\\
-
     Check_Product_Exist(product, id) {
       // this.audio.play();
       // Start the progress bar.
@@ -2221,35 +2196,30 @@ export default {
       }
       this.Get_Product_Details(product, id);
       NProgress.done();
-
       this.search_input= '';
+      this.$refs.product_autocomplete.value = "";
       this.product_filter = [];
     },
-
     //--- Get Products by Category
     Products_by_Category(id) {
       this.category_id = id;
       this.getProducts(1);
     },
-
     //--- Get Products by Brand
     Products_by_Brands(id) {
       this.brand_id = id;
       this.getProducts(1);
     },
-
     //--- Get All Category
     getAllCategory() {
       this.category_id = "";
       this.getProducts(1);
     },
-
     //--- Get All Brands
     GetAllBrands() {
       this.brand_id = "";
       this.getProducts(1);
     },
-
     //------------------------------- Get Products with Filters ------------------------------\\
     getProducts(page = 1) {
       // Start the progress bar.
@@ -2257,7 +2227,7 @@ export default {
       NProgress.set(0.1);
       axios
         .get(
-          "GetProductsByParametre?page=" +
+          "pos/get_products_pos?page=" +
             page +
             "&category_id=" +
             this.category_id +
@@ -2265,14 +2235,12 @@ export default {
             this.brand_id +
             "&warehouse_id=" +
             this.sale.warehouse_id +
-            "&stock=" +
-            1
+            "&stock=" + 1
         )
         .then(response => {
           this.products = response.data.products;
           this.product_totalRows = response.data.totalRows;
           this.Product_paginatePerPage();
-
           // Complete the animation of theprogress bar.
           NProgress.done();
         })
@@ -2281,11 +2249,10 @@ export default {
           NProgress.done();
         });
     },
-
     //---------------------------------------Get Elements ------------------------------\\
     GetElementsPos() {
       axios
-        .get("pos/GetELementPos")
+        .get("pos/data_create_pos")
         .then(response => {
           this.clients = response.data.clients;
           this.warehouses = response.data.warehouses;
@@ -2308,16 +2275,13 @@ export default {
         });
     }
   },
-
   //-------------------- Created Function -----\\
-
   created() {
     this.GetElementsPos();
     Fire.$on("pay_now", () => {
       setTimeout(() => {
         this.payment.amount = this.formatNumber(this.GrandTotal, 2);
         this.payment.received_amount = this.formatNumber(this.GrandTotal, 2);
-
         this.payment.Reglement = "Cash";
         this.$bvModal.show("Add_Payment");
         // Complete the animation of theprogress bar.

@@ -84,6 +84,12 @@ class PurchasePolicy
         return $user->id === $purchase->user_id;
     }
 
+        public function product_purchases_report(User $user)
+    {
+        $permission = Permission::where('name', 'product_purchases_report')->first();
+        return $user->hasRole($permission->roles);
+    }
+
     /**
      * Determine whether the user can restore the model.
      *

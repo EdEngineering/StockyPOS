@@ -193,6 +193,29 @@ blockquote {
   background: #F3F4F6!important;
 }
 
+.nav-item-module{
+  padding: 26px 0px 42px 0px!important;
+}
+
+.addon_triangle {
+  position: absolute;
+  width: 0;
+  height: 0;
+  right: 0;
+  bottom: 0;
+  border-style: solid;
+  border-width: 0px 0px 35px 100px;
+  border-color: transparent transparent #e11239 transparent;
+}
+.addon_triangle span {
+  position: absolute;
+  top: 15px;
+  right: 5px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .loading_page{
   height: 80px;
   width: 80px;
@@ -211,7 +234,7 @@ blockquote {
 
 .change_amount{
   font-size: .9rem;
-  color: #868e96;
+  color: #ef4444;
   margin-left: 10px;
 }
 // np progress bar

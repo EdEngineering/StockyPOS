@@ -32,9 +32,16 @@
           <b-button @click="Users_PDF()" size="sm" variant="outline-success m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Users_Excel()" size="sm" variant="outline-danger m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+           <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="users"
+              :columns="columns"
+              :file-name="'users'"
+              :file-type="'xlsx'"
+              :sheet-name="'users'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
           <b-button
             @click="New_User()"
             size="sm"
@@ -259,7 +266,7 @@
             </b-col>
 
             <!-- role -->
-            <b-col md="6" sm="12">
+            <b-col md="6" sm="12" class="mb-3">
               <validation-provider name="role" :rules="{ required: true}">
                 <b-form-group slot-scope="{ valid, errors }" :label="$t('RoleName') + ' ' + '*'">
                   <v-select
@@ -276,7 +283,7 @@
             </b-col>
 
             <!-- Avatar -->
-            <b-col md="6" sm="12">
+            <b-col md="6" sm="12" class="mb-3">
               <validation-provider name="Avatar" ref="Avatar" rules="mimes:image/*|size:200">
                 <b-form-group slot-scope="{validate, valid, errors }" :label="$t('UserImage')">
                   <input
@@ -292,7 +299,7 @@
             </b-col>
 
             <!-- New Password -->
-            <b-col md="6" v-if="editmode">
+            <b-col md="6" v-if="editmode" class="mb-3">
               <validation-provider
                 name="New password"
                 :rules="{min:6 , max:14}"
@@ -314,8 +321,14 @@
             </b-col>
 
             <!-- assigned_warehouses -->
-            <b-col md="12" sm="12">
-                <b-form-group :label="$t('Assigned_warehouses')">
+            <b-col md="4" sm="4">
+              <h5>{{$t('Assigned_warehouses')}}</h5>
+            </b-col>
+
+            <b-col md="8" sm="8">
+              <label class="checkbox checkbox-primary mb-3"><input type="checkbox" v-model="user.is_all_warehouses"><h5>{{$t('All_Warehouses')}} <i v-b-tooltip.hover.bottom title="If 'All Warehouses' Selected , User Can access all data for the selected Warehouses" class="text-info font-weight-bold i-Speach-BubbleAsking"></i></h5><span class="checkmark"></span></label>
+               
+               <b-form-group class="mt-2" :label="$t('Some_warehouses')">
                   <v-select
                     multiple
                     v-model="assigned_warehouses"
@@ -389,6 +402,7 @@ export default {
         statut: "",
         role_id: "",
         avatar: "",
+        is_all_warehouses:1,
       },
       assigned_warehouses:[],
     };
@@ -542,7 +556,7 @@ export default {
     //------ Checked Status User
     isChecked(user) {
       axios
-        .put("users/Activated/" + user.id, {
+        .put("users_switch_activated/" + user.id, {
           statut: user.statut,
           id: user.id
         })
@@ -599,33 +613,6 @@ export default {
       pdf.save("User_List.pdf");
     },
 
-    //------------------------ Users Excel ---------------------------\\
-    Users_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("users/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Users.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        })
-        .catch(() => {
-          // Complete the animation of theprogress bar.
-          setTimeout(() => NProgress.done(), 500);
-        });
-    },
 
     // Simply replaces null values with strings=''
     setToStrings() {
@@ -704,12 +691,8 @@ export default {
             .get("/users/"+id+"/edit")
             .then(response => {
                 this.assigned_warehouses   = response.data.assigned_warehouses;
-                // setTimeout(() => {
-                //   this.$bvModal.show("New_User");
-                // }, 500);
             })
             .catch(error => {
-                // this.$bvModal.show("New_User");
             });
     },
 
@@ -736,6 +719,7 @@ export default {
       self.data.append("password", self.user.password);
       self.data.append("phone", self.user.phone);
       self.data.append("role", self.user.role_id);
+      self.data.append("is_all_warehouses", self.user.is_all_warehouses);
       self.data.append("avatar", self.user.avatar);
 
       // append array assigned_warehouses
@@ -780,6 +764,7 @@ export default {
       self.data.append("phone", self.user.phone);
       self.data.append("role", self.user.role_id);
       self.data.append("statut", self.user.statut);
+      self.data.append("is_all_warehouses", self.user.is_all_warehouses);
       self.data.append("avatar", self.user.avatar);
 
        // append array assigned_warehouses
@@ -826,6 +811,7 @@ export default {
         statut: "",
         role_id: "",
         avatar: "",
+        is_all_warehouses:1,
       };
       this.data= new FormData();
       this.assigned_warehouses = [];

@@ -13,6 +13,8 @@ import ru from './locales/ru';
 import hn from './locales/hn';
 import vn from './locales/vn';
 import kr from './locales/kr';
+import ba from './locales/ba';
+import br from './locales/br';
 
 
 export default {
@@ -31,4 +33,6 @@ export default {
   hn,
   vn,
   kr,
+  ba,
+  br,
 };

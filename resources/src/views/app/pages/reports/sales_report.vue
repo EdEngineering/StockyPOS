@@ -22,7 +22,11 @@
         mode="remote"
         :columns="columns"
         :totalRows="totalRows"
-        :rows="sales"
+        :rows="rows"
+        :group-options="{
+          enabled: true,
+          headerPosition: 'bottom',
+        }"
         @on-page-change="onPageChange"
         @on-per-page-change="onPerPageChange"
         @on-sort-change="onSortChange"
@@ -47,9 +51,16 @@
           <b-button @click="Sales_PDF()" size="sm" variant="outline-success ripple m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Sales_Excel()" size="sm" variant="outline-danger ripple m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+           <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="sales"
+              :columns="columns"
+              :file-name="'sales_report'"
+              :file-type="'xlsx'"
+              :sheet-name="'sales_report'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
         </div>
 
         <template slot="table-row" slot-scope="props">
@@ -99,6 +110,18 @@
                 :placeholder="$t('Choose_Customer')"
                 v-model="Filter_Client"
                 :options="customers.map(customers => ({label: customers.name, value: customers.id}))"
+              />
+            </b-form-group>
+          </b-col>
+
+           <!-- warehouse -->
+          <b-col md="12">
+            <b-form-group :label="$t('warehouse')">
+              <v-select
+                v-model="Filter_warehouse"
+                :reduce="label => label.value"
+                :placeholder="$t('Choose_Warehouse')"
+                :options="warehouses.map(warehouses => ({label: warehouses.name, value: warehouses.id}))"
               />
             </b-form-group>
           </b-col>
@@ -192,10 +215,19 @@ components: { DateRangePicker },
       search: "",
       totalRows: "",
       Filter_Client: "",
+      Filter_warehouse: "",
       Filter_Ref: "",
       Filter_status: "",
       Filter_Payment: "",
       customers: [],
+      warehouses: [],
+      rows: [{
+          statut: 'Total',
+         
+          children: [
+             
+          ],
+      },],
       sales: [],
       today_mode: true,
       to: "",
@@ -225,6 +257,12 @@ components: { DateRangePicker },
           thClass: "text-left"
         },
         {
+          label: this.$t("warehouse"),
+          field: "warehouse_name",
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
+        {
           label: this.$t("Status"),
           field: "statut",
           html: true,
@@ -235,6 +273,7 @@ components: { DateRangePicker },
           label: this.$t("Total"),
           field: "GrandTotal",
           type: "decimal",
+          headerField: this.sumCount,
           tdClass: "text-left",
           thClass: "text-left"
         },
@@ -242,6 +281,7 @@ components: { DateRangePicker },
           label: this.$t("Paid"),
           field: "paid_amount",
           type: "decimal",
+          headerField: this.sumCount2,
           tdClass: "text-left",
           thClass: "text-left"
         },
@@ -249,6 +289,7 @@ components: { DateRangePicker },
           label: this.$t("Due"),
           field: "due",
           type: "decimal",
+          headerField: this.sumCount3,
           tdClass: "text-left",
           thClass: "text-left"
         },
@@ -264,6 +305,32 @@ components: { DateRangePicker },
   },
 
   methods: {
+
+    sumCount(rowObj) {
+     
+    	let sum = 0;
+      for (let i = 0; i < rowObj.children.length; i++) {
+        sum += rowObj.children[i].GrandTotal;
+      }
+      return sum;
+    },
+    sumCount2(rowObj) {
+     
+    	let sum = 0;
+      for (let i = 0; i < rowObj.children.length; i++) {
+        sum += rowObj.children[i].paid_amount;
+      }
+      return sum;
+    },
+    sumCount3(rowObj) {
+     
+    	let sum = 0;
+      for (let i = 0; i < rowObj.children.length; i++) {
+        sum += rowObj.children[i].due;
+      }
+      return sum;
+    },
+
     //---- update Params Table
     updateParams(newProps) {
       this.serverParams = Object.assign({}, this.serverParams, newProps);
@@ -317,6 +384,7 @@ components: { DateRangePicker },
       this.Filter_status = "";
       this.Filter_Payment = "";
       this.Filter_Ref = "";
+      this.Filter_warehouse = "";
       this.Get_Sales(this.serverParams.page);
     },
 
@@ -342,6 +410,7 @@ components: { DateRangePicker },
       let columns = [
         { title: "Ref", dataKey: "Ref" },
         { title: "Client", dataKey: "client_name" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
         { title: "Status", dataKey: "statut" },
         { title: "Total", dataKey: "GrandTotal" },
         { title: "Paid", dataKey: "paid_amount" },
@@ -353,39 +422,13 @@ components: { DateRangePicker },
       pdf.save("Sales_report.pdf");
     },
 
-    //-------------------------------- Sales Excel ------------------------------\\
-    Sales_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("sales/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "List_Sales.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of the  progress bar.
-          NProgress.done();
-        })
-        .catch(() => {
-          // Complete the animation of the  progress bar.
-          NProgress.done();
-        });
-    },
-
     //---------------------------------------- Set To Strings-------------------------\\
     setToStrings() {
       // Simply replaces null values with strings=''
       if (this.Filter_Client === null) {
         this.Filter_Client = "";
+      }else if (this.Filter_warehouse === null) {
+        this.Filter_warehouse = "";
       }
     },
 
@@ -421,12 +464,14 @@ components: { DateRangePicker },
       this.get_data_loaded();
       axios
         .get(
-          "/report/Sales?page=" +
+          "/report/sales?page=" +
             page +
             "&Ref=" +
             this.Filter_Ref +
             "&client_id=" +
             this.Filter_Client +
+            "&warehouse_id=" +
+            this.Filter_warehouse +
             "&statut=" +
             this.Filter_status +
             "&payment_statut=" +
@@ -447,7 +492,9 @@ components: { DateRangePicker },
         .then(response => {
           this.sales = response.data.sales;
           this.customers = response.data.customers;
+          this.warehouses = response.data.warehouses;
           this.totalRows = response.data.totalRows;
+          this.rows[0].children = this.sales;
 
           // Complete the animation of theprogress bar.
           NProgress.done();

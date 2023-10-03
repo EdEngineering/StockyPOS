@@ -17,7 +17,7 @@
             <div><strong> Status: </strong> {{$quote['statut']}}</div>
          </div>
          <div id="Title-heading">
-            Quotation  {{$quote['Ref']}}
+            Quotation  : {{$quote['Ref']}}
          </div>
          </div>
       </header>
@@ -33,10 +33,11 @@
                   <tbody>
                      <tr>
                         <td>
-                           <div><strong>Name:</strong> {{$quote['client_name']}}</div>
-                           <div><strong>Phone:</strong> {{$quote['client_phone']}}</div>
-                           <div><strong>Adress:</strong>   {{$quote['client_adr']}}</div>
-                           <div><strong>Email:</strong>  {{$quote['client_email']}}</div>
+                           <div><strong>Full Name :</strong> {{$quote['client_name']}}</div>
+                           <div><strong>Phone :</strong> {{$quote['client_phone']}}</div>
+                           <div><strong>Email :</strong>  {{$quote['client_email']}}</div>
+                           <div><strong>Address :</strong>   {{$quote['client_adr']}}</div>
+                           @if($quote['client_tax'])<div><strong>Tax Number :</strong>  {{$quote['client_tax']}}</div>@endif
                         </td>
                      </tr>
                   </tbody>
@@ -53,9 +54,9 @@
                      <tr>
                         <td>
                            <div id="comp">{{$setting['CompanyName']}}</div>
-                           <div><strong>Adress:</strong>  {{$setting['CompanyAdress']}}</div>
-                           <div><strong>Phone:</strong>  {{$setting['CompanyPhone']}}</div>
-                           <div><strong>Email:</strong>  {{$setting['email']}}</div>
+                           <div><strong>Phone :</strong>  {{$setting['CompanyPhone']}}</div>
+                           <div><strong>Email :</strong>  {{$setting['email']}}</div>
+                           <div><strong>Address :</strong>  {{$setting['CompanyAdress']}}</div>
                         </td>
                      </tr>
                   </tbody>
@@ -77,7 +78,12 @@
                <tbody>
                   @foreach ($details as $detail)
                   <tr>
-                     <td>{{$detail['code']}} ({{$detail['name']}})</td>
+                     <td>
+                        <span>{{$detail['code']}} ({{$detail['name']}})</span>
+                           @if($detail['is_imei'] && $detail['imei_number'] !==null)
+                              <p>IMEI/SN : {{$detail['imei_number']}}</p>
+                           @endif
+                     </td>
                      <td>{{$detail['price']}} </td>
                      <td>{{$detail['quantity']}}/{{$detail['unitSale']}}</td>
                      <td>{{$detail['DiscountNet']}} </td>
@@ -108,7 +114,11 @@
                </tr>
             </table>
          </div>
-         <div id="signature">Signature</div>
+         <div id="signature">
+            @if($setting['is_invoice_footer'] && $setting['invoice_footer'] !==null)
+               <p>{{$setting['invoice_footer']}}</p>
+            @endif
+         </div>
       </main>
    </body>
 </html>

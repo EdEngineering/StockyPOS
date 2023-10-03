@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\UserWarehouse;
-use App\Exports\ProductsExport;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
@@ -19,7 +18,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Facades\Excel;
 use \Gumlet\ImageResize;
 
 class ProductsController extends BaseController
@@ -100,8 +98,12 @@ class ProductsController extends BaseController
 
         //get warehouses assigned to user
         $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         $categories = Category::where('deleted_at', null)->get(['id', 'name']);
         $brands = Brand::where('deleted_at', null)->get(['id', 'name']);
@@ -159,6 +161,8 @@ class ProductsController extends BaseController
                 $Product->unit_purchase_id = $request['unit_purchase_id'];
                 $Product->stock_alert = $request['stock_alert'] ? $request['stock_alert'] : 0;
                 $Product->is_variant = $request['is_variant'] == 'true' ? 1 : 0;
+                $Product->is_imei = $request['is_imei'] == 'true' ? 1 : 0;
+                $Product->not_selling = $request['not_selling'] == 'true' ? 1 : 0;
 
                 if ($request['images']) {
                     $files = $request['images'];
@@ -274,7 +278,8 @@ class ProductsController extends BaseController
                 $Product->unit_purchase_id = $request['unit_purchase_id'] ? $request['unit_purchase_id'] : $request['unit_id'];
                 $Product->stock_alert = $request['stock_alert'];
                 $Product->is_variant = $request['is_variant'] == 'true' ? 1 : 0;
-
+                $Product->is_imei = $request['is_imei'] == 'true' ? 1 : 0;
+                $Product->not_selling = $request['not_selling'] == 'true' ? 1 : 0;
                 // Store Variants Product
                 $oldVariants = ProductVariant::where('product_id', $id)
                     ->where('deleted_at', null)
@@ -548,15 +553,7 @@ class ProductsController extends BaseController
 
     }
 
-    //-------------- Export All Product to EXCEL  ---------------\\
-
-    public function export_Excel(Request $request)
-    {
-        $this->authorizeForUser($request->user('api'), 'view', Product::class);
-
-        return Excel::download(new ProductsExport, 'List_Products.xlsx');
-    }
-
+   
     //--------------  Show Product Details ---------------\\
 
     public function Get_Products_Details(Request $request, $id)
@@ -566,9 +563,13 @@ class ProductsController extends BaseController
 
         $Product = Product::where('deleted_at', '=', null)->findOrFail($id);
         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         $item['id'] = $Product->id;
         $item['code'] = $Product->code;
@@ -644,13 +645,23 @@ class ProductsController extends BaseController
     {
         $data = [];
         $product_warehouse_data = product_warehouse::with('warehouse', 'product', 'productVariant')
-            ->where('warehouse_id', $id)
-            ->where('deleted_at', '=', null)
-            ->where(function ($query) use ($request) {
-                if ($request->stock == '1') {
-                    return $query->where('qte', '>', 0);
-                }
-            })->get();
+
+        ->where(function ($query) use ($request , $id) {
+                return $query->where('warehouse_id', $id)
+                    ->where('deleted_at', '=', null)
+                    ->where(function ($query) use ($request) {
+                        return $query->whereHas('product', function ($q) use ($request) {
+                            if ($request->is_sale == '1') {
+                                $q->where('not_selling', '=', 0);
+                            }
+                        });
+                    })
+                    ->where(function ($query) use ($request) {
+                        if ($request->stock == '1') {
+                            return $query->where('qte', '>', 0);
+                        }
+                    });
+        })->get();
 
         foreach ($product_warehouse_data as $product_warehouse) {
 
@@ -730,6 +741,8 @@ class ProductsController extends BaseController
         $item['unitSale'] = $Product_data['unitSale']->ShortName;
         $item['tax_method'] = $Product_data['tax_method'];
         $item['tax_percent'] = $Product_data['TaxNet'];
+        $item['is_imei'] = $Product_data['is_imei'];
+        $item['not_selling'] = $Product_data['not_selling'];
 
         if ($Product_data['unitSale']->operator == '/') {
             $price = $Product_data['price'] / $Product_data['unitSale']->operator_value;
@@ -830,11 +843,15 @@ class ProductsController extends BaseController
 
         $products = new LengthAwarePaginator($data_collection, count($data), $perPage, Paginator::resolveCurrentPage(), array('path' => Paginator::resolveCurrentPath()));
        
-        //get warehouses assigned to user
-        $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
-
+         //get warehouses assigned to user
+         $user_auth = auth()->user();
+         if($user_auth->is_all_warehouses){
+             $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+         }else{
+             $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+             $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+         }
+ 
         return response()->json([
             'products' => $products,
             'warehouses' => $warehouses,
@@ -865,10 +882,14 @@ class ProductsController extends BaseController
     {
         $this->authorizeForUser($request->user('api'), 'barcode', Product::class);
 
-        //get warehouses assigned to user
-        $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+         //get warehouses assigned to user
+         $user_auth = auth()->user();
+         if($user_auth->is_all_warehouses){
+             $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+         }else{
+             $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+             $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+         }
         
         return response()->json(['warehouses' => $warehouses]);
 
@@ -978,6 +999,9 @@ class ProductsController extends BaseController
             $item['is_variant'] = false;
             $item['ProductVariant'] = [];
         }
+
+        $item['is_imei'] = $Product->is_imei?true:false;
+        $item['not_selling'] = $Product->not_selling?true:false;
 
         $data = $item;
         $categories = Category::where('deleted_at', null)->get(['id', 'name']);

@@ -230,7 +230,7 @@ export default {
     //------------------ Get Profile Info ----------------------\\
     Get_Profile_Info() {
       axios
-        .get("users/Get_Info/Profile")
+        .get("Get_user_profile")
         .then(response => {
           this.user = response.data.user;
           this.avatar = this.currentUser.avatar;
@@ -269,7 +269,7 @@ export default {
       self.data.append("_method", "put");
 
       axios
-        .post("updateProfile/" + self.user.id, self.data)
+        .post("update_user_profile/" + self.user.id, self.data)
         .then(response => {
           this.makeToast(
             "success",

@@ -56,6 +56,7 @@ class PosController extends BaseController
             $order->discount = $request->discount;
             $order->shipping = $request->shipping;
             $order->GrandTotal = $request->GrandTotal;
+            $order->notes = $request->notes;
             $order->statut = 'completed';
             $order->payment_statut = 'unpaid';
             $order->user_id = Auth::user()->id;
@@ -80,6 +81,7 @@ class PosController extends BaseController
                     'tax_method' => $value['tax_method'],
                     'discount' => $value['discount'],
                     'discount_method' => $value['discount_Method'],
+                    'imei_number' => $value['imei_number'],
                 ];
 
                 if ($value['product_variant_id'] !== null) {
@@ -235,11 +237,16 @@ class PosController extends BaseController
             ->with('product', 'product.unitSale')
             ->where('deleted_at', '=', null)
             ->where(function ($query) use ($request) {
-                if ($request->stock == '1') {
-                    return $query->where('qte', '>', 0);
-                }
-
+                return $query->whereHas('product', function ($q) use ($request) {
+                    $q->where('not_selling', '=', 0);
+                })
+                ->where(function ($query) use ($request) {
+                    if ($request->stock == '1') {
+                        return $query->where('qte', '>', 0);
+                    }
+                });
             })
+
         // Filter
             ->where(function ($query) use ($request) {
                 return $query->when($request->filled('category_id'), function ($query) use ($request) {
@@ -327,23 +334,42 @@ class PosController extends BaseController
     public function GetELementPos(Request $request)
     {
         $this->authorizeForUser($request->user('api'), 'Sales_pos', Sale::class);
-        
-        //get warehouses assigned to user
-        $user_auth = auth()->user();
-        $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-        $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
-
         $clients = Client::where('deleted_at', '=', null)->get(['id', 'name']);
         $settings = Setting::where('deleted_at', '=', null)->first();
-        if ($settings->warehouse_id) {
-            if (Warehouse::where('id', $settings->warehouse_id)->whereIn('id', $warehouses_id)->where('deleted_at', '=', null)->first()) {
-                $defaultWarehouse = $settings->warehouse_id;
+
+          //get warehouses assigned to user
+          $user_auth = auth()->user();
+          if($user_auth->is_all_warehouses){
+             $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+
+             if ($settings->warehouse_id) {
+                if (Warehouse::where('id', $settings->warehouse_id)->where('deleted_at', '=', null)->first()) {
+                    $defaultWarehouse = $settings->warehouse_id;
+                } else {
+                    $defaultWarehouse = '';
+                }
             } else {
                 $defaultWarehouse = '';
             }
-        } else {
-            $defaultWarehouse = '';
-        }
+
+          }else{
+             $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+             $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+
+             if ($settings->warehouse_id) {
+                if (Warehouse::where('id', $settings->warehouse_id)->whereIn('id', $warehouses_id)->where('deleted_at', '=', null)->first()) {
+                    $defaultWarehouse = $settings->warehouse_id;
+                } else {
+                    $defaultWarehouse = '';
+                }
+            } else {
+                $defaultWarehouse = '';
+            }
+          }
+
+
+      
+        
 
         if ($settings->client_id) {
             if (Client::where('id', $settings->client_id)->where('deleted_at', '=', null)->first()) {

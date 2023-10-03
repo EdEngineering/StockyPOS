@@ -296,7 +296,7 @@ export default {
       NProgress.set(0.1);
       axios
         .get(
-          "expensescategory?page=" +
+          "expenses_category?page=" +
             page +
             "&SortField=" +
             this.serverParams.sort.field +
@@ -327,7 +327,7 @@ export default {
     Create_Category() {
       this.SubmitProcessing = true;
       axios
-        .post("expensescategory", {
+        .post("expenses_category", {
           name: this.category.name,
           description: this.category.description
         })
@@ -351,7 +351,7 @@ export default {
     Update_Category() {
       this.SubmitProcessing = true;
       axios
-        .put("expensescategory/" + this.category.id, {
+        .put("expenses_category/" + this.category.id, {
           name: this.category.name,
           description: this.category.description
         })
@@ -385,7 +385,7 @@ export default {
       }).then(result => {
         if (result.value) {
           axios
-            .delete("expensescategory/" + id)
+            .delete("expenses_category/" + id)
             .then(() => {
               this.$swal(
                 this.$t("Delete.Deleted"),
@@ -424,7 +424,7 @@ export default {
           NProgress.start();
           NProgress.set(0.1);
           axios
-            .post("expensescategory/delete/by_selection", {
+            .post("expenses_category_delete_by_selection", {
               selectedIds: this.selectedIds
             })
             .then(() => {

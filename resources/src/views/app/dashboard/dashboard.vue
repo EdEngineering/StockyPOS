@@ -1,206 +1,227 @@
 <template>
   <!-- ============ Body content start ============= -->
   <div class="main-content">
-    <b-row>
-      <!-- ICON BG -->
+    <div v-if="loading" class="loading_page spinner spinner-primary mr-3"></div>
+    <div v-else-if="!loading && currentUserPermissions && currentUserPermissions.includes('dashboard')">
+      <!-- warehouse -->
+      <b-row>
+        <b-col lg="4" md="4" sm="12">
+          <b-form-group :label="$t('Filter_by_warehouse')">
+            <v-select
+              @input="Selected_Warehouse"
+              v-model="warehouse_id"
+              :reduce="label => label.value"
+              :placeholder="$t('Choose_Warehouse')"
+              :options="warehouses.map(warehouses => ({label: warehouses.name, value: warehouses.id}))"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
 
-      <b-col lg="3" md="6" sm="12">
-        <router-link tag="a" class to="/app/sales/list">
-          <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
-            <i class="i-Full-Cart"></i>
-            <div class="content">
-              <p class="text-muted mt-2 mb-0">{{$t('Sales')}}</p>
-              <p
-                class="text-primary text-24 line-height-1 mb-2"
-              >{{currentUser.currency}} {{report_today.today_sales?report_today.today_sales:0}}</p>
+      <b-row>
+        <!-- ICON BG -->
+
+        <b-col lg="3" md="6" sm="12">
+          <router-link tag="a" class to="/app/sales/list">
+            <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
+              <i class="i-Full-Cart"></i>
+              <div class="content">
+                <p class="text-muted mt-2 mb-0">{{$t('Sales')}}</p>
+                <p
+                  class="text-primary text-24 line-height-1 mb-2"
+                >{{currentUser.currency}} {{report_today.today_sales?report_today.today_sales:0}}</p>
+              </div>
+            </b-card>
+          </router-link>
+        </b-col>
+
+        <b-col lg="3" md="6" sm="12">
+          <router-link tag="a" class to="/app/purchases/list">
+            <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
+              <i class="i-Add-Cart"></i>
+              <div class="content">
+                <p class="text-muted mt-2 mb-0">{{$t('Purchases')}}</p>
+                <p
+                  class="text-primary text-24 line-height-1 mb-2"
+                >{{currentUser.currency}} {{report_today.today_purchases?report_today.today_purchases:0}}</p>
+              </div>
+            </b-card>
+          </router-link>
+        </b-col>
+
+        <b-col lg="3" md="6" sm="12">
+          <router-link tag="a" class to="/app/sale_return/list">
+            <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
+              <i class="i-Right-4"></i>
+              <div class="content">
+                <p class="text-muted mt-2 mb-0">{{$t('SalesReturn')}}</p>
+                <p
+                  class="text-primary text-24 line-height-1 mb-2"
+                >{{currentUser.currency}} {{report_today.return_sales?report_today.return_sales:0}}</p>
+              </div>
+            </b-card>
+          </router-link>
+        </b-col>
+
+        <b-col lg="3" md="6" sm="12">
+          <router-link tag="a" class to="/app/purchase_return/list">
+            <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
+              <i class="i-Left-4"></i>
+              <div class="content">
+                <p class="text-muted mt-2 mb-0">{{$t('PurchasesReturn')}}</p>
+                <p
+                  class="text-primary text-24 line-height-1 mb-2"
+                >{{currentUser.currency}} {{report_today.return_purchases?report_today.return_purchases:0}}</p>
+              </div>
+            </b-card>
+          </router-link>
+        </b-col>
+
+      </b-row>
+
+      <b-row>
+        <b-col lg="8" md="12" sm="12">
+          <b-card class="mb-30">
+            <h4 class="card-title m-0">{{$t('This_Week_Sales_Purchases')}}</h4>
+            <div class="chart-wrapper">
+              <div v-once class="typo__p text-right" v-if="loading">
+                <div class="spinner sm spinner-primary mt-3"></div>
+              </div>
+              <v-chart v-if="!loading" :options="echartSales" :autoresize="true"></v-chart>
             </div>
           </b-card>
-        </router-link>
-      </b-col>
-
-      <b-col lg="3" md="6" sm="12">
-        <router-link tag="a" class to="/app/purchases/list">
-          <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
-            <i class="i-Add-Cart"></i>
-            <div class="content">
-              <p class="text-muted mt-2 mb-0">{{$t('Purchases')}}</p>
-              <p
-                class="text-primary text-24 line-height-1 mb-2"
-              >{{currentUser.currency}} {{report_today.today_purchases?report_today.today_purchases:0}}</p>
+        </b-col>
+        <b-col col lg="4" md="12" sm="12">
+          <b-card class="mb-30">
+            <h4 class="card-title m-0">{{$t('Top_Selling_Products')}} ({{new Date().getFullYear()}})</h4>
+            <div class="chart-wrapper">
+              <div v-once class="typo__p text-right" v-if="loading">
+                <div class="spinner sm spinner-primary mt-3"></div>
+              </div>
+              <v-chart v-if="!loading" :options="echartProduct" :autoresize="true"></v-chart>
             </div>
           </b-card>
-        </router-link>
-      </b-col>
+        </b-col>
+      </b-row>
 
-      <b-col lg="3" md="6" sm="12">
-        <router-link tag="a" class to="/app/sale_return/list">
-          <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
-            <i class="i-Right-4"></i>
-            <div class="content">
-              <p class="text-muted mt-2 mb-0">{{$t('SalesReturn')}}</p>
-              <p
-                class="text-primary text-24 line-height-1 mb-2"
-              >{{currentUser.currency}} {{report_today.return_sales?report_today.return_sales:0}}</p>
+      <b-row>
+        <!-- Stock Alert -->
+        <div class="col-md-8">
+          <div class="card mb-30">
+            <div class="card-body p-2">
+              <h5 class="card-title border-bottom p-3 mb-2">{{$t('StockAlert')}}</h5>
+
+              <vue-good-table
+                :columns="columns_stock"
+                styleClass="order-table vgt-table mb-3"
+                row-style-class="text-left"
+                :rows="stock_alerts"
+              >
+                <template slot="table-row" slot-scope="props">
+                  <div v-if="props.column.field == 'stock_alert'">
+                    <span class="badge badge-outline-danger">{{props.row.stock_alert}}</span>
+                  </div>
+                </template>
+              </vue-good-table>
             </div>
-          </b-card>
-        </router-link>
-      </b-col>
-
-      <b-col lg="3" md="6" sm="12">
-        <router-link tag="a" class to="/app/purchase_return/list">
-          <b-card class="card-icon-bg card-icon-bg-primary o-hidden mb-30 text-center">
-            <i class="i-Left-4"></i>
-            <div class="content">
-              <p class="text-muted mt-2 mb-0">{{$t('PurchasesReturn')}}</p>
-              <p
-                class="text-primary text-24 line-height-1 mb-2"
-              >{{currentUser.currency}} {{report_today.return_purchases?report_today.return_purchases:0}}</p>
-            </div>
-          </b-card>
-        </router-link>
-      </b-col>
-
-    </b-row>
-
-    <b-row>
-      <b-col lg="8" md="12" sm="12">
-        <b-card class="mb-30">
-          <h4 class="card-title m-0">{{$t('This_Week_Sales_Purchases')}}</h4>
-          <div class="chart-wrapper">
-            <div v-once class="typo__p text-right" v-if="loading">
-              <div class="spinner sm spinner-primary mt-3"></div>
-            </div>
-            <v-chart v-if="!loading" :options="echartSales" :autoresize="true"></v-chart>
-          </div>
-        </b-card>
-      </b-col>
-      <b-col col lg="4" md="12" sm="12">
-        <b-card class="mb-30">
-          <h4 class="card-title m-0">{{$t('Top_Selling_Products')}} ({{new Date().getFullYear()}})</h4>
-          <div class="chart-wrapper">
-            <div v-once class="typo__p text-right" v-if="loading">
-              <div class="spinner sm spinner-primary mt-3"></div>
-            </div>
-            <v-chart v-if="!loading" :options="echartProduct" :autoresize="true"></v-chart>
-          </div>
-        </b-card>
-      </b-col>
-    </b-row>
-
-    <b-row>
-      <!-- Stock Alert -->
-      <div class="col-md-8">
-        <div class="card mb-30">
-          <div class="card-body p-2">
-            <h5 class="card-title border-bottom p-3 mb-2">{{$t('StockAlert')}}</h5>
-
-            <vue-good-table
-              :columns="columns_stock"
-              styleClass="order-table vgt-table mb-3"
-              row-style-class="text-left"
-              :rows="stock_alerts"
-            >
-              <template slot="table-row" slot-scope="props">
-                <div v-if="props.column.field == 'stock_alert'">
-                  <span class="badge badge-outline-danger">{{props.row.stock_alert}}</span>
-                </div>
-              </template>
-            </vue-good-table>
           </div>
         </div>
-      </div>
 
-      <div class="col-md-4">
-        <div class="card mb-30">
-          <div class="card-body p-3">
-            <h5
-              class="card-title border-bottom p-3 mb-2"
-            >{{$t('Top_Selling_Products')}} ({{CurrentMonth}})</h5>
+        <div class="col-md-4">
+          <div class="card mb-30">
+            <div class="card-body p-3">
+              <h5
+                class="card-title border-bottom p-3 mb-2"
+              >{{$t('Top_Selling_Products')}} ({{CurrentMonth}})</h5>
 
-            <vue-good-table
-              :columns="columns_products"
-              styleClass="order-table vgt-table"
-              row-style-class="text-left"
-              :rows="products"
-            >
-              <template slot="table-row" slot-scope="props">
-                <div v-if="props.column.field == 'quantity'">
-                  <span>{{formatNumber(props.row.quantity ,2)}} {{props.row.unit_product}}</span>
-                </div>
-                <div v-else-if="props.column.field == 'total'">
-                  <span>{{currentUser.currency}} {{formatNumber(props.row.total ,2)}}</span>
-                </div>
-              </template>
-            </vue-good-table>
+              <vue-good-table
+                :columns="columns_products"
+                styleClass="order-table vgt-table"
+                row-style-class="text-left"
+                :rows="products"
+              >
+                <template slot="table-row" slot-scope="props">
+                  <div v-if="props.column.field == 'total'">
+                    <span>{{currentUser.currency}} {{formatNumber(props.row.total ,2)}}</span>
+                  </div>
+                </template>
+              </vue-good-table>
+            </div>
           </div>
         </div>
-      </div>
-    </b-row>
+      </b-row>
 
-    <b-row>
-      <b-col lg="8" md="12" sm="12">
-        <b-card class="mb-30">
-          <h4 class="card-title m-0">{{$t('Payment_Sent_Received')}}</h4>
-          <div class="chart-wrapper">
-            <v-chart :options="echartPayment" :autoresize="true"></v-chart>
-          </div>
-        </b-card>
-      </b-col>
-      <b-col col lg="4" md="12" sm="12">
-        <b-card class="mb-30">
-          <h4 class="card-title m-0">{{$t('TopCustomers')}} ({{CurrentMonth}})</h4>
-          <div class="chart-wrapper">
-            <v-chart :options="echartCustomer" :autoresize="true"></v-chart>
-          </div>
-        </b-card>
-      </b-col>
-    </b-row>
+      <b-row>
+        <b-col lg="8" md="12" sm="12">
+          <b-card class="mb-30">
+            <h4 class="card-title m-0">{{$t('Payment_Sent_Received')}}</h4>
+            <div class="chart-wrapper">
+              <v-chart :options="echartPayment" :autoresize="true"></v-chart>
+            </div>
+          </b-card>
+        </b-col>
+        <b-col col lg="4" md="12" sm="12">
+          <b-card class="mb-30">
+            <h4 class="card-title m-0">{{$t('TopCustomers')}} ({{CurrentMonth}})</h4>
+            <div class="chart-wrapper">
+              <v-chart :options="echartCustomer" :autoresize="true"></v-chart>
+            </div>
+          </b-card>
+        </b-col>
+      </b-row>
 
-    <!-- Last Sales -->
-    <b-row>
-      <div class="col-md-12">
-        <div class="card mb-30">
-          <div class="card-body p-0">
-            <h5 class="card-title border-bottom p-3 mb-2">{{$t('Recent_Sales')}}</h5>
+      <!-- Last Sales -->
+      <b-row>
+        <div class="col-md-12">
+          <div class="card mb-30">
+            <div class="card-body p-0">
+              <h5 class="card-title border-bottom p-3 mb-2">{{$t('Recent_Sales')}}</h5>
 
-            <vue-good-table
-              v-if="!loading"
-              :columns="columns_sales"
-              styleClass="order-table vgt-table"
-              row-style-class="text-left"
-              :rows="sales"
-            >
-              <template slot="table-row" slot-scope="props">
-                <div v-if="props.column.field == 'statut'">
-                  <span
-                    v-if="props.row.statut == 'completed'"
-                    class="badge badge-outline-success"
-                  >{{$t('complete')}}</span>
-                  <span
-                    v-else-if="props.row.statut == 'pending'"
-                    class="badge badge-outline-info"
-                  >{{$t('Pending')}}</span>
-                  <span v-else class="badge badge-outline-warning">{{$t('Ordered')}}</span>
-                </div>
+              <vue-good-table
+                v-if="!loading"
+                :columns="columns_sales"
+                styleClass="order-table vgt-table"
+                row-style-class="text-left"
+                :rows="sales"
+              >
+                <template slot="table-row" slot-scope="props">
+                  <div v-if="props.column.field == 'statut'">
+                    <span
+                      v-if="props.row.statut == 'completed'"
+                      class="badge badge-outline-success"
+                    >{{$t('complete')}}</span>
+                    <span
+                      v-else-if="props.row.statut == 'pending'"
+                      class="badge badge-outline-info"
+                    >{{$t('Pending')}}</span>
+                    <span v-else class="badge badge-outline-warning">{{$t('Ordered')}}</span>
+                  </div>
 
-                <div v-else-if="props.column.field == 'payment_status'">
-                  <span
-                    v-if="props.row.payment_status == 'paid'"
-                    class="badge badge-outline-success"
-                  >{{$t('Paid')}}</span>
-                  <span
-                    v-else-if="props.row.payment_status == 'partial'"
-                    class="badge badge-outline-primary"
-                  >{{$t('partial')}}</span>
-                  <span v-else class="badge badge-outline-warning">{{$t('Unpaid')}}</span>
-                </div>
-              </template>
-            </vue-good-table>
+                  <div v-else-if="props.column.field == 'payment_status'">
+                    <span
+                      v-if="props.row.payment_status == 'paid'"
+                      class="badge badge-outline-success"
+                    >{{$t('Paid')}}</span>
+                    <span
+                      v-else-if="props.row.payment_status == 'partial'"
+                      class="badge badge-outline-primary"
+                    >{{$t('partial')}}</span>
+                    <span v-else class="badge badge-outline-warning">{{$t('Unpaid')}}</span>
+                  </div>
+                </template>
+              </vue-good-table>
+            </div>
           </div>
         </div>
-      </div>
-    </b-row>
+      </b-row>
+    </div>
+
+    <div v-else>
+      <h4>{{$t('Welcome_to_your_Dashboard')}}</h4>
+    </div>
+
   </div>
+  
   <!-- ============ Body content End ============= -->
 </template>
 <script>
@@ -226,6 +247,8 @@ export default {
   data() {
     return {
       sales: [],
+      warehouses: [],
+       warehouse_id: "",
       stock_alerts: [],
       report_today: {
         revenue: 0,
@@ -244,7 +267,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["currentUser"]),
+    ...mapGetters(["currentUserPermissions", "currentUser"]),
     columns_sales() {
       return [
         {
@@ -260,6 +283,12 @@ export default {
           tdClass: "gull-border-none text-left",
           thClass: "text-left",
           sortable: false
+        },
+        {
+          label: this.$t("warehouse"),
+          field: "warehouse_name",
+          tdClass: "text-left",
+          thClass: "text-left"
         },
         {
           label: this.$t("Status"),
@@ -352,14 +381,14 @@ export default {
           sortable: false
         },
         {
-          label: this.$t("Quantity"),
-          field: "quantity",
+          label: this.$t("TotalSales"),
+          field: "total_sales",
           tdClass: "text-left",
           thClass: "text-left",
           sortable: false
         },
         {
-          label: this.$t("Total"),
+          label: this.$t("TotalAmount"),
           field: "total",
           tdClass: "text-left",
           thClass: "text-left",
@@ -369,14 +398,25 @@ export default {
     }
   },
   methods: {
+
+     //---------------------- Event Select Warehouse ------------------------------\\
+    Selected_Warehouse(value) {
+      if (value === null) {
+        this.warehouse_id = "";
+      }
+      this.all_dashboard_data();
+    },
+
     //---------------------------------- Report Dashboard With Echart
-    report_with_echart() {
+    all_dashboard_data() {
       axios
-        .get(`chart/report_with_echart`)
+        .get(
+          "/dashboard_data?warehouse_id=" + this.warehouse_id)
         .then(response => {
           const responseData = response.data;
 
           this.report_today = response.data.report_dashboard.original.report;
+          this.warehouses = response.data.warehouses;
           this.stock_alerts =
             response.data.report_dashboard.original.stock_alert;
           this.products = response.data.report_dashboard.original.products;
@@ -460,7 +500,7 @@ export default {
               backgroundColor: "rgba(0, 0, 0, .8)"
             },
             formatter: function(params) {
-              return `${params.name}: (${params.percent}%)`;
+              return `${params.name}: (${params.value}sales)`;
             },
             series: [
               {
@@ -625,7 +665,7 @@ export default {
     }
   },
   async mounted() {
-    await this.report_with_echart();
+    await this.all_dashboard_data();
     this.GetMonth();
   }
 };

@@ -336,7 +336,7 @@ export default {
         NProgress.start();
         NProgress.set(0.1);
       axios
-        .get("Products/Warehouse/" + id + "?stock=" + 0)
+        .get("get_Products_by_warehouse/" + id + "?stock=" + 0)
          .then(response => {
             this.products = response.data;
              NProgress.done();
@@ -516,7 +516,7 @@ export default {
     //---------------------------------Get Product Details ------------------------\\
 
     Get_Product_Details(product_id) {
-      axios.get("Products/" + product_id).then(response => {
+      axios.get("products/" + product_id).then(response => {
         this.product.product_id = response.data.id;
         this.product.name = response.data.name;
         this.product.type = "add";

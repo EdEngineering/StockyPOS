@@ -103,7 +103,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="detail in details">
-                      <td>{{detail.code}} ({{detail.name}})</td>
+                      <td><span>{{detail.code}} ({{detail.name}})</span>
+                        <p v-show="detail.is_imei && detail.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail.imei_number}}</p>
+                      </td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.Net_price,3)}}</td>
                       <td>{{formatNumber(detail.quantity,2)}} {{detail.unit_sale}}</td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.price,2)}}</td>
@@ -200,7 +202,7 @@ export default {
       let id = this.$route.params.id;
      
        axios
-        .get(`Quote_PDF/${id}`, {
+        .get(`quote_pdf/${id}`, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -276,7 +278,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .post("quotations/sendQuote/email", {
+        .post("quotations_send_email", {
           id: id,
           to: this.email.to,
           client_name: this.email.client_name,
@@ -306,7 +308,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .post("quotations/send/sms", {
+        .post("quotations_send_sms", {
           id: id,
         })
         .then(response => {

@@ -85,6 +85,12 @@ class SalePolicy
         return $user->hasRole($permission->roles);
     }
 
+    public function product_sales_report(User $user)
+    {
+        $permission = Permission::where('name', 'product_sales_report')->first();
+        return $user->hasRole($permission->roles);
+    }
+
     public function check_record(User $user, $sale)
     {
         return $user->id === $sale->user_id;

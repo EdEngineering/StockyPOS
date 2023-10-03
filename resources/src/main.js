@@ -37,6 +37,9 @@ Vue.use(VueCookies);
 var VueCookie = require('vue-cookie');
 Vue.use(VueCookie);
 
+import VueExcelXlsx from "vue-excel-xlsx";
+Vue.use(VueExcelXlsx);
+
 window.axios = require('axios');
 window.axios.defaults.baseURL = '/api/';
 

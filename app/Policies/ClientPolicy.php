@@ -91,6 +91,18 @@ class ClientPolicy
         return $user->hasRole($permission->roles);
     }
 
+    public function pay_due(User $user)
+    {
+        $permission = Permission::where('name', 'pay_due')->first();
+        return $user->hasRole($permission->roles);
+    }
+
+    public function pay_sale_return_due(User $user)
+    {
+        $permission = Permission::where('name', 'pay_sale_return_due')->first();
+        return $user->hasRole($permission->roles);
+    }
+
 
     /**
      * Determine whether the user can restore the model.

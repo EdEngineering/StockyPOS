@@ -22,15 +22,6 @@ class CreateUserWarehouseTable extends Migration {
 			$table->integer('user_id')->index('user_warehouse_user_id');
 			$table->integer('warehouse_id')->index('user_warehouse_warehouse_id');
 		});
-
-		 // assigned Warehouses to users
-		 $warehouses = Warehouse::where('deleted_at', null)->pluck('id')->toArray();
-		 $users = User::where('deleted_at', null)->get();
-
-		 foreach ($users as $user) {
-			 $user->assignedWarehouses()->sync($warehouses);
-		 }
-
 	}
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Config;
 use DB;
+use \Nwidart\Modules\Facades\Module;
 
 class BaseController extends Controller
 {
@@ -88,18 +89,47 @@ class BaseController extends Controller
         if ($server && $settings) //checking if table is not empty
         {
             $config = array(
-                'driver' => 'smtp',
+                'driver' => $server->mail_mailer,
                 'host' => $server->host,
                 'port' => $server->port,
-                'from' => array('address' => $settings->email, 'name' => 'Admin'),
+                'from' => array('address' => $settings->email, 'name' => $server->sender_name),
                 'encryption' => $server->encryption,
                 'username' => $server->username,
                 'password' => $server->password,
                 'sendmail' => '/usr/sbin/sendmail -bs',
                 'pretend' => false,
+                'stream' => [
+                    'ssl' => [
+                        'allow_self_signed' => true,
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
+                ],
             );
             Config::set('mail', $config);
         }
+    }
+
+    public static function get_Module_Info()
+    {
+        $allModules = Module::all();
+        $allEnabledModules = Module::allEnabled();
+
+        $ModulesInstalled = [];
+        $ModulesEnabled = [];
+
+        foreach($allModules as $key => $modules_name){
+            $ModulesInstalled[] = $key;
+        }
+
+        foreach($allEnabledModules as $key => $modules_name){
+            $ModulesEnabled[] = $key;
+        }
+
+        return [
+            'ModulesInstalled' => $ModulesInstalled, 
+            'ModulesEnabled' => $ModulesEnabled, 
+        ];
     }
 
 }

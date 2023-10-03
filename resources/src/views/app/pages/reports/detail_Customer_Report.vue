@@ -11,7 +11,7 @@
           <i class="i-Full-Cart"></i>
           <div class="content">
             <p class="text-muted mt-2 mb-0">{{$t('Sales')}}</p>
-            <p class="text-primary text-24 line-height-1 mb-2">{{formatNumber(client.total_sales ,2)}}</p>
+            <p class="text-primary text-24 line-height-1 mb-2">{{client.total_sales}}</p>
           </div>
         </b-card>
       </b-col>
@@ -54,35 +54,7 @@
       <b-col md="12">
         <b-card class="card mb-30" header-bg-variant="transparent ">
           <b-tabs active-nav-item-class="nav nav-tabs" content-class="mt-3">
-            <!-- Quotations Table -->
-            <b-tab :title="$t('Quotations')">
-              <vue-good-table
-                mode="remote"
-                :columns="columns_quotations"
-                :totalRows="totalRows_quotations"
-                :rows="quotations"
-                @on-page-change="PageChangeQuotation"
-                @on-per-page-change="onPerPageChangeQuotation"
-                :pagination-options="{
-                  enabled: true,
-                  mode: 'records',
-                  nextLabel: 'next',
-                  prevLabel: 'prev',
-                }"
-                styleClass="tableOne table-hover vgt-table"
-              >
-                <template slot="table-row" slot-scope="props">
-                  <div v-if="props.column.field == 'statut'">
-                    <span
-                      v-if="props.row.statut == 'sent'"
-                      class="badge badge-outline-success"
-                    >{{$t('Sent')}}</span>
-                    <span v-else class="badge badge-outline-info">{{$t('Pending')}}</span>
-                  </div>
-                </template>
-              </vue-good-table>
-            </b-tab>
-
+           
             <!-- Sales Table -->
             <b-tab :title="$t('Sales')">
               <vue-good-table
@@ -92,6 +64,11 @@
                 :rows="sales"
                 @on-page-change="PageChangeSales"
                 @on-per-page-change="onPerPageChangeSales"
+                @on-search="onSearch_sales"
+                :search-options="{
+                  placeholder: $t('Search_this_table'),
+                  enabled: true,
+                }"
                 :pagination-options="{
                   enabled: true,
                   mode: 'records',
@@ -100,6 +77,11 @@
                 }"
                 styleClass="tableOne table-hover vgt-table"
               >
+              <div slot="table-actions" class="mt-2 mb-3">
+                <b-button @click="Sales_PDF()" size="sm" variant="outline-success ripple m-1">
+                  <i class="i-File-Copy"></i> PDF
+                </b-button>
+              </div>
                 <template slot="table-row" slot-scope="props">
                   <div v-if="props.column.field == 'statut'">
                     <span
@@ -123,6 +105,82 @@
                     >{{$t('partial')}}</span>
                     <span v-else class="badge badge-outline-warning">{{$t('Unpaid')}}</span>
                   </div>
+                  <div v-else-if="props.column.field == 'shipping_status'">
+                  <span
+                    v-if="props.row.shipping_status == 'ordered'"
+                    class="badge badge-outline-warning"
+                  >{{$t('Ordered')}}</span>
+
+                  <span
+                    v-else-if="props.row.shipping_status == 'packed'"
+                    class="badge badge-outline-info"
+                  >{{$t('Packed')}}</span>
+
+                  <span
+                    v-else-if="props.row.shipping_status == 'shipped'"
+                    class="badge badge-outline-secondary"
+                  >{{$t('Shipped')}}</span>
+
+                  <span
+                    v-else-if="props.row.shipping_status == 'delivered'"
+                    class="badge badge-outline-success"
+                  >{{$t('Delivered')}}</span>
+
+                  <span v-else-if="props.row.shipping_status == 'cancelled'" class="badge badge-outline-danger">{{$t('Cancelled')}}</span>
+                </div>
+                   <div v-else-if="props.column.field == 'Ref'">
+                    <router-link
+                      :to="'/app/sales/detail/'+props.row.id"
+                    >
+                      <span class="ul-btn__text ml-1">{{props.row.Ref}}</span>
+                    </router-link>
+                  </div>
+                </template>
+              </vue-good-table>
+            </b-tab>
+
+             <!-- Quotations Table -->
+            <b-tab :title="$t('Quotations')">
+              <vue-good-table
+                mode="remote"
+                :columns="columns_quotations"
+                :totalRows="totalRows_quotations"
+                :rows="quotations"
+                @on-page-change="PageChangeQuotation"
+                @on-per-page-change="onPerPageChangeQuotation"
+                @on-search="onSearch_quotations"
+                :search-options="{
+                  placeholder: $t('Search_this_table'),
+                  enabled: true,
+                }"
+                :pagination-options="{
+                  enabled: true,
+                  mode: 'records',
+                  nextLabel: 'next',
+                  prevLabel: 'prev',
+                }"
+                styleClass="tableOne table-hover vgt-table"
+              >
+              <div slot="table-actions" class="mt-2 mb-3">
+                <b-button @click="Quotation_PDF()" size="sm" variant="outline-success ripple m-1">
+                  <i class="i-File-Copy"></i> PDF
+                </b-button>
+              </div>
+                <template slot="table-row" slot-scope="props">
+                  <div v-if="props.column.field == 'statut'">
+                    <span
+                      v-if="props.row.statut == 'sent'"
+                      class="badge badge-outline-success"
+                    >{{$t('Sent')}}</span>
+                    <span v-else class="badge badge-outline-info">{{$t('Pending')}}</span>
+                  </div>
+                    <div v-else-if="props.column.field == 'Ref'">
+                    <router-link
+                      :to="'/app/quotations/detail/'+props.row.id"
+                    >
+                      <span class="ul-btn__text ml-1">{{props.row.Ref}}</span>
+                    </router-link>
+                  </div>
                 </template>
               </vue-good-table>
             </b-tab>
@@ -136,6 +194,11 @@
                 :rows="returns_customer"
                 @on-page-change="PageChangeReturn"
                 @on-per-page-change="onPerPageChangeReturn"
+                @on-search="onSearch_return_sales"
+                :search-options="{
+                  placeholder: $t('Search_this_table'),
+                  enabled: true,
+                }"
                 :pagination-options="{
                   enabled: true,
                   mode: 'records',
@@ -144,6 +207,11 @@
                 }"
                 styleClass="tableOne table-hover vgt-table"
               >
+              <div slot="table-actions" class="mt-2 mb-3">
+                <b-button @click="Sale_Return_PDF()" size="sm" variant="outline-success ripple m-1">
+                  <i class="i-File-Copy"></i> PDF
+                </b-button>
+              </div>
                 <template slot="table-row" slot-scope="props">
                   <div v-if="props.column.field == 'statut'">
                     <span
@@ -164,6 +232,20 @@
                     >{{$t('partial')}}</span>
                     <span v-else class="badge badge-outline-warning">{{$t('Unpaid')}}</span>
                   </div>
+                  <div v-else-if="props.column.field == 'Ref'">
+                    <router-link
+                      :to="'/app/sale_return/detail/'+props.row.id"
+                    >
+                      <span class="ul-btn__text ml-1">{{props.row.Ref}}</span>
+                    </router-link>
+                  </div>
+                  <div v-else-if="props.column.field == 'sale_ref' && props.row.sale_id">
+                    <router-link
+                      :to="'/app/sales/detail/'+props.row.sale_id"
+                    >
+                      <span class="ul-btn__text ml-1">{{props.row.sale_ref}}</span>
+                    </router-link>
+                  </div>
                 </template>
               </vue-good-table>
             </b-tab>
@@ -177,6 +259,11 @@
                 :rows="payments"
                 @on-page-change="PageChangePayments"
                 @on-per-page-change="onPerPageChangePayments"
+                @on-search="onSearch_payments"
+                :search-options="{
+                  placeholder: $t('Search_this_table'),
+                  enabled: true,
+                }"
                 :pagination-options="{
                   enabled: true,
                   mode: 'records',
@@ -184,7 +271,13 @@
                   prevLabel: 'prev',
                 }"
                 styleClass="tableOne table-hover vgt-table"
-              ></vue-good-table>
+              >
+               <div slot="table-actions" class="mt-2 mb-3">
+                <b-button @click="Payments_PDF()" size="sm" variant="outline-success ripple m-1">
+                  <i class="i-File-Copy"></i> PDF
+                </b-button>
+              </div>
+              </vue-good-table>
             </b-tab>
           </b-tabs>
         </b-card>
@@ -196,6 +289,9 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 export default {
   data() {
     return {
@@ -216,6 +312,12 @@ export default {
       sales: [],
       quotations: [],
       returns_customer: [],
+
+      search_sales:"",
+      search_payments:"",
+      search_quotations:"",
+      search_return_sales:"",
+
       client: {
         id: "",
         name: "",
@@ -246,6 +348,19 @@ export default {
           sortable: false
         },
         {
+          label: this.$t("Customer"),
+          field: "client_name",
+          tdClass: "text-left",
+          thClass: "text-left",
+          sortable: false
+        },
+        {
+          label: this.$t("warehouse"),
+          field: "warehouse_name",
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
+        {
           label: this.$t("Total"),
           field: "GrandTotal",
           tdClass: "text-left",
@@ -271,13 +386,19 @@ export default {
           thClass: "text-left",
           sortable: false
         },
+       
         {
-          label: this.$t("Status"),
-          field: "statut",
-          html: true,
+          label: this.$t("Customer"),
+          field: "client_name",
           tdClass: "text-left",
           thClass: "text-left",
           sortable: false
+        },
+        {
+          label: this.$t("warehouse"),
+          field: "warehouse_name",
+          tdClass: "text-left",
+          thClass: "text-left"
         },
         {
           label: this.$t("Total"),
@@ -303,6 +424,14 @@ export default {
           thClass: "text-left",
           sortable: false
         },
+         {
+          label: this.$t("Status"),
+          field: "statut",
+          html: true,
+          tdClass: "text-left",
+          thClass: "text-left",
+          sortable: false
+        },
         {
           label: this.$t("PaymentStatus"),
           field: "payment_status",
@@ -310,7 +439,14 @@ export default {
           tdClass: "text-left",
           thClass: "text-left",
           sortable: false
-        }
+        },
+        {
+          label: this.$t("Shipping_status"),
+          field: "shipping_status",
+          html: true,
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
       ];
     },
     columns_returns() {
@@ -330,13 +466,18 @@ export default {
           sortable: false
         },
         {
-          label: this.$t("Status"),
-          field: "statut",
-          html: true,
+          label: this.$t("Sale_Ref"),
+          field: "sale_ref",
           tdClass: "text-left",
-          thClass: "text-left",
-          sortable: false
+          thClass: "text-left"
         },
+        {
+          label: this.$t("warehouse"),
+          field: "warehouse_name",
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
+       
         {
           label: this.$t("Total"),
           field: "GrandTotal",
@@ -357,6 +498,14 @@ export default {
           label: this.$t("Due"),
           field: "due",
           type: "decimal",
+          tdClass: "text-left",
+          thClass: "text-left",
+          sortable: false
+        },
+         {
+          label: this.$t("Status"),
+          field: "statut",
+          html: true,
           tdClass: "text-left",
           thClass: "text-left",
           sortable: false
@@ -387,6 +536,7 @@ export default {
           thClass: "text-left",
           sortable: false
         },
+       
         {
           label: this.$t("Sale"),
           field: "Sale_Ref",
@@ -414,6 +564,82 @@ export default {
   },
 
   methods: {
+
+     //----------------------------------- Sales PDF ------------------------------\\
+    Sales_PDF() {
+      var self = this;
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Ref", dataKey: "Ref" },
+        { title: "Client", dataKey: "client_name" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
+        { title: "Status", dataKey: "statut" },
+        { title: "Total", dataKey: "GrandTotal" },
+        { title: "Paid", dataKey: "paid_amount" },
+        { title: "Due", dataKey: "due" },
+        { title: "Status Payment", dataKey: "payment_status" },
+        { title: "Shipping Status", dataKey: "shipping_status" }
+      ];
+      pdf.autoTable(columns, self.sales);
+      pdf.text("Sale List", 40, 25);
+      pdf.save("Sale_List.pdf");
+    },
+
+      //------------------------------------- Quotations PDF -------------------------\\
+    Quotation_PDF() {
+      var self = this;
+
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Date", dataKey: "date" },
+        { title: "Ref", dataKey: "Ref" },
+        { title: "Client", dataKey: "client_name" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
+        { title: "Status", dataKey: "statut" },
+        { title: "Total", dataKey: "GrandTotal" }
+      ];
+      pdf.autoTable(columns, self.quotations);
+      pdf.text("Quotation List", 40, 25);
+      pdf.save("Quotation_List.pdf");
+    },
+
+     //----------------------------------------- Sales Return PDF -----------------------\\
+    Sale_Return_PDF() {
+      var self = this;
+
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Ref", dataKey: "Ref" },
+        { title: "Client", dataKey: "client_name" },
+        { title: "sale_ref", dataKey: "sale_ref" },
+        { title: "Warehouse", dataKey: "warehouse_name" },
+        { title: "Total", dataKey: "GrandTotal" },
+        { title: "Paid", dataKey: "paid_amount" },
+        { title: "Due", dataKey: "due" },
+        { title: "Status", dataKey: "statut" },
+        { title: "Status Payment", dataKey: "payment_status" }
+      ];
+      pdf.autoTable(columns, self.returns_customer);
+      pdf.text("Sales Return List", 40, 25);
+      pdf.save("Sales Return.pdf");
+    },
+
+       //----------------------------------- Sales PDF ------------------------------\\
+    Payments_PDF() {
+      var self = this;
+      let pdf = new jsPDF("p", "pt");
+      let columns = [
+        { title: "Date", dataKey: "date" },
+        { title: "Ref", dataKey: "Ref" },
+        { title: "Sale", dataKey: "Sale_Ref" },
+        { title: "Reglement", dataKey: "Reglement" },
+        { title: "Amount", dataKey: "montant" },
+      ];
+      pdf.autoTable(columns, self.payments);
+      pdf.text("Payments List", 40, 25);
+      pdf.save("Payments_List.pdf");
+    },
+
     //------------------------------Formetted Numbers -------------------------\\
     formatNumber(number, dec) {
       const value = (typeof number === "string"
@@ -454,20 +680,27 @@ export default {
       }
     },
 
+    onSearch_sales(value) {
+      this.search_sales = value.searchTerm;
+      this.Get_Sales(1);
+    },
+
     //--------------------------- Get sales By Customer -------------\\
     Get_Sales(page) {
       axios
         .get(
-          "/report/client_Sales?page=" +
+          "/report/client_sales?page=" +
             page +
             "&limit=" +
             this.limit_sales +
+            "&search=" +
+            this.search_sales +
             "&id=" +
             this.$route.params.id
         )
         .then(response => {
           this.sales = response.data.sales;
-          this.totalRows = response.data.totalRows;
+          this.totalRows_sales = response.data.totalRows;
         })
         .catch(response => {});
     },
@@ -487,6 +720,11 @@ export default {
       }
     },
 
+     onSearch_payments(value) {
+      this.search_payments = value.searchTerm;
+      this.Get_Payments(1);
+    },
+
     //--------------------------- Get Payments By Customer -------------\\
     Get_Payments(page) {
       axios
@@ -495,12 +733,14 @@ export default {
             page +
             "&limit=" +
             this.limit_payments +
+            "&search=" +
+            this.search_payments +
             "&id=" +
             this.$route.params.id
         )
         .then(response => {
           this.payments = response.data.payments;
-          this.totalRows = response.data.totalRows;
+          this.totalRows_payments = response.data.totalRows;
         })
         .catch(response => {});
     },
@@ -520,6 +760,11 @@ export default {
       }
     },
 
+     onSearch_quotations(value) {
+      this.search_quotations = value.searchTerm;
+      this.Get_Quotations(1);
+    },
+
     //--------------------------- Get Quotations By Customer -------------\\
     Get_Quotations(page) {
       axios
@@ -528,12 +773,14 @@ export default {
             page +
             "&limit=" +
             this.limit_quotations +
+            "&search=" +
+            this.search_quotations +
             "&id=" +
             this.$route.params.id
         )
         .then(response => {
           this.quotations = response.data.quotations;
-          this.totalRows = response.data.totalRows;
+          this.totalRows_quotations = response.data.totalRows;
           this.isLoading = false;
         })
         .catch(response => {
@@ -558,6 +805,11 @@ export default {
       }
     },
 
+     onSearch_return_sales(value) {
+      this.search_return_sales = value.searchTerm;
+      this.Get_Returns(1);
+    },
+
     //--------------------------- Get Returns By Customer -------------\\
     Get_Returns(page) {
       axios
@@ -566,12 +818,14 @@ export default {
             page +
             "&limit=" +
             this.limit_returns +
+            "&search=" +
+            this.search_return_sales +
             "&id=" +
             this.$route.params.id
         )
         .then(response => {
           this.returns_customer = response.data.returns_customer;
-          this.totalRows = response.data.totalRows;
+          this.totalRows_returns = response.data.totalRows;
         })
         .catch(response => {});
     }

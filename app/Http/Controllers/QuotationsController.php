@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\QuotationsExport;
 use App\Mail\QuotationMail;
 use App\Models\Client;
 use App\Models\Product;
@@ -22,9 +21,11 @@ use Twilio\Rest\Client as Client_Twilio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Maatwebsite\Excel\Facades\Excel;
+use \Nwidart\Modules\Facades\Module;
+use App\Models\sms_gateway;
 use DB;
 use PDF;
+use ArPHP\I18N\Arabic;
 
 class QuotationsController extends BaseController
 {
@@ -115,10 +116,15 @@ class QuotationsController extends BaseController
         }
 
         $customers = client::where('deleted_at', '=', null)->get();
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        
+        //get warehouses assigned to user
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         return response()->json([
             'totalRows' => $totalRows,
@@ -175,6 +181,7 @@ class QuotationsController extends BaseController
                     'product_id' => $value['product_id'],
                     'product_variant_id' => $value['product_variant_id'],
                     'total' => $value['subtotal'],
+                    'imei_number' => $value['imei_number'],
                 ];
             }
             QuotationDetail::insert($orderDetails);
@@ -240,8 +247,8 @@ class QuotationsController extends BaseController
                 $QuoteDetail['tax_method'] = $product_detail['tax_method'];
                 $QuoteDetail['discount'] = $product_detail['discount'];
                 $QuoteDetail['discount_method'] = $product_detail['discount_Method'];
-
                 $QuoteDetail['total'] = $product_detail['subtotal'];
+                $QuoteDetail['imei_number'] = $product_detail['imei_number'];
 
                 if (!in_array($product_detail['id'], $old_detail_id)) {
                     QuotationDetail::Create($QuoteDetail);
@@ -332,20 +339,17 @@ class QuotationsController extends BaseController
 
         $this->authorizeForUser($request->user('api'), 'view', Quotation::class);
 
-        $quote = $request->all();
+        $quote['id'] = $request->id;
+        $quote['Ref'] = $request->Ref;
+        $settings = Setting::where('deleted_at', '=', null)->first();
+        $quote['company_name'] = $settings->CompanyName;
+
         $pdf = $this->Quotation_pdf($request, $quote['id']);
         $this->Set_config_mail(); // Set_config_mail => BaseController
         $mail = Mail::to($request->to)->send(new QuotationMail($quote, $pdf));
         return $mail;
     }
 
-    //------------ Export Excel Quotations -------------\\
-
-    public function exportExcel(Request $request)
-    {
-        $this->authorizeForUser($request->user('api'), 'view', Quotation::class);
-        return Excel::download(new QuotationsExport, 'Quotations.xlsx');
-    }
 
     //---------------- Get Details Quotation-----------------\\
 
@@ -378,6 +382,7 @@ class QuotationsController extends BaseController
         $quote['client_phone'] = $quotation_data['client']->phone;
         $quote['client_adr'] = $quotation_data['client']->adresse;
         $quote['client_email'] = $quotation_data['client']->email;
+        $quote['client_tax'] = $quotation_data['client']->tax_number;
         $quote['warehouse'] = $quotation_data['warehouse']->name;
         $quote['GrandTotal'] = number_format($quotation_data['GrandTotal'], 2, '.', '');
 
@@ -428,6 +433,9 @@ class QuotationsController extends BaseController
                 $data['taxe'] = $detail->price - $data['Net_price'] - $data['DiscountNet'];
             }
 
+            $data['is_imei'] = $detail['product']['is_imei'];
+            $data['imei_number'] = $detail->imei_number;
+
             $details[] = $data;
         }
 
@@ -474,6 +482,7 @@ class QuotationsController extends BaseController
         $quote['client_phone'] = $Quotation['client']->phone;
         $quote['client_adr'] = $Quotation['client']->adresse;
         $quote['client_email'] = $Quotation['client']->email;
+        $quote['client_tax'] = $Quotation['client']->tax_number;
         $quote['TaxNet'] = number_format($Quotation->TaxNet, 2, '.', '');
         $quote['discount'] = number_format($Quotation->discount, 2, '.', '');
         $quote['shipping'] = number_format($Quotation->shipping, 2, '.', '');
@@ -530,19 +539,32 @@ class QuotationsController extends BaseController
                 $data['taxe'] = number_format($detail->price - $data['Net_price'] - $data['DiscountNet'], 2, '.', '');
             }
 
+            $data['is_imei'] = $detail['product']['is_imei'];
+            $data['imei_number'] = $detail->imei_number;
+
             $details[] = $data;
         }
 
         $settings = Setting::where('deleted_at', '=', null)->first();
         $symbol = $helpers->Get_Currency_Code();
 
-        $pdf = \PDF::loadView('pdf.quotation_pdf', [
+        $Html = view('pdf.quotation_pdf', [
             'symbol' => $symbol,
             'setting' => $settings,
             'quote' => $quote,
             'details' => $details,
-        ]);
-        return $pdf->download('Quotation.pdf');
+        ])->render();
+
+        $arabic = new Arabic();
+        $p = $arabic->arIdentify($Html);
+
+        for ($i = count($p)-1; $i >= 0; $i-=2) {
+            $utf8ar = $arabic->utf8Glyphs(substr($Html, $p[$i-1], $p[$i] - $p[$i-1]));
+            $Html = substr_replace($Html, $utf8ar, $p[$i-1], $p[$i] - $p[$i-1]);
+        }
+
+        $pdf = PDF::loadHTML($Html);
+        return $pdf->download('quotation.pdf');
 
     }
 
@@ -553,10 +575,14 @@ class QuotationsController extends BaseController
 
         $this->authorizeForUser($request->user('api'), 'create', Quotation::class);
 
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        //get warehouses assigned to user
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         $clients = Client::where('deleted_at', '=', null)->get(['id', 'name']);
 
@@ -682,6 +708,8 @@ class QuotationsController extends BaseController
             $data['total'] = $detail->total;
             $data['unitSale'] = $unit->ShortName;
             $data['sale_unit_id'] = $unit->id;
+            $data['is_imei'] = $detail['product']['is_imei'];
+            $data['imei_number'] = $detail->imei_number;
 
             if ($detail->discount_method == '2') {
                 $data['DiscountNet'] = $detail->discount;
@@ -709,10 +737,14 @@ class QuotationsController extends BaseController
             $details[] = $data;
         }
 
-         //get warehouses assigned to user
-         $user_auth = auth()->user();
-         $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
-         $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        //get warehouses assigned to user
+        $user_auth = auth()->user();
+        if($user_auth->is_all_warehouses){
+            $warehouses = Warehouse::where('deleted_at', '=', null)->get(['id', 'name']);
+        }else{
+            $warehouses_id = UserWarehouse::where('user_id', $user_auth->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::where('deleted_at', '=', null)->whereIn('id', $warehouses_id)->get(['id', 'name']);
+        }
 
         $clients = Client::where('deleted_at', '=', null)->get(['id', 'name']);
 
@@ -729,22 +761,50 @@ class QuotationsController extends BaseController
      public function Send_SMS(Request $request)
      {
          $Quotation = Quotation::where('deleted_at', '=', null)->findOrFail($request->id);
-         $url = url('/api/Quote_PDF/' . $request->id);
+         $settings = Setting::where('deleted_at', '=', null)->first();
+         $gateway = sms_gateway::where('id' , $settings->sms_gateway)
+         ->where('deleted_at', '=', null)->first();
+
+         $url = url('/api/quote_pdf/' . $request->id);
          $receiverNumber = $Quotation['client']->phone;
          $message = "Dear" .' '.$Quotation['client']->name." \n We are contacting you in regard to a Quotation #".$Quotation->Ref.' '.$url.' '. "that has been created on your account. \n We look forward to conducting future business with you.";
-         try {
-   
-             $account_sid = env("TWILIO_SID");
-             $auth_token = env("TWILIO_TOKEN");
-             $twilio_number = env("TWILIO_FROM");
-   
-             $client = new Client_Twilio($account_sid, $auth_token);
-             $client->messages->create($receiverNumber, [
-                 'from' => $twilio_number, 
-                 'body' => $message]);
-     
-         } catch (Exception $e) {
-             return response()->json(['message' => $e->getMessage()], 500);
-         }
-     }
+         
+         //twilio
+        if($gateway->title == "twilio"){
+            try {
+    
+                $account_sid = env("TWILIO_SID");
+                $auth_token = env("TWILIO_TOKEN");
+                $twilio_number = env("TWILIO_FROM");
+    
+                $client = new Client_Twilio($account_sid, $auth_token);
+                $client->messages->create($receiverNumber, [
+                    'from' => $twilio_number, 
+                    'body' => $message]);
+        
+            } catch (Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+
+        //nexmo
+        }elseif($gateway->title == "nexmo"){
+            try {
+
+                $basic  = new \Nexmo\Client\Credentials\Basic(env("NEXMO_KEY"), env("NEXMO_SECRET"));
+                $client = new \Nexmo\Client($basic);
+                $nexmo_from = env("NEXMO_FROM");
+        
+                $message = $client->message()->send([
+                    'to' => $receiverNumber,
+                    'from' => $nexmo_from,
+                    'text' => $message
+                ]);
+                        
+            } catch (Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+        }
+    }
+
 }
+

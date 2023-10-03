@@ -7,7 +7,7 @@
       <b-row>
         <b-col md="12" class="mb-2">
           <router-link
-            v-if="currentUserPermissions && currentUserPermissions.includes('Purchases_edit')"
+            v-if="currentUserPermissions && currentUserPermissions.includes('Purchases_edit') && purchase.purchase_has_return == 'no'"
             title="Edit"
             class="btn btn-success btn-icon ripple btn-sm"
             :to="{ name:'edit_purchase', params: { id: $route.params.id } }"
@@ -31,7 +31,7 @@
             {{$t('print')}}
           </button>
           <button
-            v-if="currentUserPermissions && currentUserPermissions.includes('Purchases_delete')"
+            v-if="currentUserPermissions && currentUserPermissions.includes('Purchases_delete') && purchase.purchase_has_return == 'no'"
             @click="Delete_Purchase()"
             class="btn btn-danger btn-icon ripple btn-sm"
           >
@@ -109,7 +109,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="detail in details">
-                      <td>{{detail.code}} ({{detail.name}})</td>
+                      <td><span>{{detail.code}} ({{detail.name}})</span>
+                        <p v-show="detail.is_imei && detail.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail.imei_number}}</p>
+                      </td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.Net_cost,3)}}</td>
                       <td>{{formatNumber(detail.quantity,2)}} {{detail.unit_purchase}}</td>
                       <td>{{currentUser.currency}} {{formatNumber(detail.cost,2)}}</td>
@@ -220,7 +222,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .get(`Purchase_PDF/${id}`, {
+        .get(`purchase_pdf/${id}`, {
           responseType: "blob", // important
           headers: {
             "Content-Type": "application/json"
@@ -298,7 +300,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .post("purchases/send/email", {
+        .post("purchase_send_email", {
           id: id,
           to: this.email.to,
           supplier_name: this.email.supplier_name,
@@ -328,7 +330,7 @@ export default {
       NProgress.set(0.1);
       let id = this.$route.params.id;
       axios
-        .post("purchases/send/sms", {
+        .post("purchase_send_sms", {
           id: id,
         })
         .then(response => {

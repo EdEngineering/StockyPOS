@@ -1,13 +1,10 @@
 @component('mail::message')
 
-<h2 class="text-center">PAYMENT RECEIPT</h2>
+<h3>Dear Mister or Madam,</h3>
 
-<h3>Hello {{$data['client_name']}}</h3>
-<h3>Transaction number: {{$data['Ref']}}</h3>
-<h3>Review your receipt in the attachment </h3>
+<h3>Please find your attached Invoice : {{ $data['Ref'] }} in PDF format.</h3>
+<h3>We thank you for the trust you show us.</h3>
 
-<span>Regards,<span><br>
-{{ config('app.name') }}
+<h3>Regards,<h3>
+<h3>{{ $data['company_name'] }}<h3>
 @endcomponent
-
-

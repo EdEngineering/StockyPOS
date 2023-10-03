@@ -327,7 +327,7 @@ export default {
         NProgress.start();
         NProgress.set(0.1);
       axios
-        .get("Products/Warehouse/" + id + "?stock=" + 0)
+        .get("get_Products_by_warehouse/" + id + "?stock=" + 0)
          .then(response => {
             this.products = response.data;
              NProgress.done();
@@ -369,7 +369,7 @@ export default {
     //----------------------------------- GET Barcode Elements -------------------------\\
     Get_Elements: function() {
       axios
-        .get("Products/Get_element/barcode")
+        .get("barcode_create_page")
         .then(response => {
           this.warehouses = response.data.warehouses;
           this.isLoading = false;

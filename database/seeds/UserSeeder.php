@@ -25,6 +25,7 @@ class UserSeeder extends Seeder
                 'phone' => '0123456789',
                 'role_id' => 1,
                 'statut' => 1,
+                'is_all_warehouses' => 1,
             )
         );
     }

@@ -957,7 +957,7 @@ export default {
         NProgress.start();
         NProgress.set(0.1);
       axios
-        .get("Products/Warehouse/" + id + "?stock=" + 1)
+        .get("get_Products_by_warehouse/" + id + "?stock=" + 1)
          .then(response => {
             this.products = response.data;
              NProgress.done();
@@ -970,7 +970,7 @@ export default {
     //---------------------------------Get Product Details ------------------------\\
 
     Get_Product_Details(product_id) {
-      axios.get("Products/" + product_id).then(response => {
+      axios.get("products/" + product_id).then(response => {
         this.product.discount = 0;
         this.product.DiscountNet = 0;
         this.product.discount_Method = "2";

@@ -336,7 +336,7 @@ export default {
       //---------------------- Get_departments_by_company ------------------------------\\
         Get_departments_by_company(value) {
             axios
-                .get("/core/Get_departments_by_company?id=" + value)
+                .get("/core/get_departments_by_company?id=" + value)
                 .then(({ data }) => (this.departments = data));
         },
 

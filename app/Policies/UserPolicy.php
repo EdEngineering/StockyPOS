@@ -78,6 +78,12 @@ class UserPolicy
         return $user->hasRole($permission->roles);
     }
 
+    public function users_report(User $user)
+    {
+        $permission = Permission::where('name', 'users_report')->first();
+        return $user->hasRole($permission->roles);
+    }
+
 
     /**
      * Determine whether the user can restore the model.

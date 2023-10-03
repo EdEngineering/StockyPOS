@@ -11,7 +11,7 @@ class Product extends Model
 
     protected $fillable = [
         'code', 'Type_barcode', 'name', 'cost', 'price', 'unit_id', 'unit_sale_id', 'unit_purchase_id',
-        'stock_alert', 'category_id', 'sub_category_id', 'is_variant',
+        'stock_alert', 'category_id', 'sub_category_id', 'is_variant','is_imei',
         'tax_method', 'image', 'brand_id', 'is_active', 'note',
     ];
 
@@ -22,6 +22,7 @@ class Product extends Model
         'unit_sale_id' => 'integer',
         'unit_purchase_id' => 'integer',
         'is_variant' => 'integer',
+        'is_imei' => 'integer',
         'brand_id' => 'integer',
         'is_active' => 'integer',
         'cost' => 'double',

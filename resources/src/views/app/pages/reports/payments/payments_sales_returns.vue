@@ -23,7 +23,11 @@
         mode="remote"
         :columns="columns"
         :totalRows="totalRows"
-        :rows="payments"
+        :rows="rows"
+        :group-options="{
+          enabled: true,
+          headerPosition: 'bottom',
+        }"
         @on-page-change="onPageChange"
         @on-per-page-change="onPerPageChange"
         @on-sort-change="onSortChange"
@@ -48,9 +52,16 @@
           <b-button @click="Payment_PDF()" size="sm" variant="outline-success ripple m-1">
             <i class="i-File-Copy"></i> PDF
           </b-button>
-          <b-button @click="Payment_Excel()" size="sm" variant="outline-danger ripple m-1">
-            <i class="i-File-Excel"></i> EXCEL
-          </b-button>
+          <vue-excel-xlsx
+              class="btn btn-sm btn-outline-danger ripple m-1"
+              :data="payments"
+              :columns="columns"
+              :file-name="'payments'"
+              :file-type="'xlsx'"
+              :sheet-name="'payments'"
+              >
+              <i class="i-File-Excel"></i> EXCEL
+          </vue-excel-xlsx>
         </div>
       </vue-good-table>
     </b-card>
@@ -102,6 +113,7 @@
                           [
                           {label: 'Cash', value: 'Cash'},
                           {label: 'cheque', value: 'cheque'},
+                          {label: 'TPE', value: 'tpe'},
                           {label: 'Western Union', value: 'Western Union'},
                           {label: 'bank transfer', value: 'bank transfer'},
                           {label: 'credit card', value: 'credit card'},
@@ -169,6 +181,13 @@ export default {
       Filter_Reg: "",
       payments: [],
       clients: [],
+      rows: [{
+          Reglement: 'Total',
+         
+          children: [
+             
+          ],
+      },],
       sale_returns: [],
       today_mode: true,
       startDate: "", 
@@ -226,6 +245,8 @@ export default {
         {
           label: this.$t("Amount"),
           field: "montant",
+          type: "decimal",
+          headerField: this.sumCount,
           tdClass: "text-left",
           thClass: "text-left"
         }
@@ -234,6 +255,16 @@ export default {
   },
 
   methods: {
+
+    sumCount(rowObj) {
+     
+    	let sum = 0;
+      for (let i = 0; i < rowObj.children.length; i++) {
+        sum += rowObj.children[i].montant;
+      }
+      return sum;
+    },
+
     //---- update Params Table
     updateParams(newProps) {
       this.serverParams = Object.assign({}, this.serverParams, newProps);
@@ -316,35 +347,7 @@ export default {
       pdf.save("Payments_Sale_Returns.pdf");
     },
 
-    //----------------------- Payment Sale Returns Excel -----------------------\\
-    Payment_Excel() {
-      // Start the progress bar.
-      NProgress.start();
-      NProgress.set(0.1);
-      axios
-        .get("payment/returns_sale/export/Excel", {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "Payment_Sale_Returns.xlsx");
-          document.body.appendChild(link);
-          link.click();
-          // Complete the animation of the  progress bar.
-          NProgress.done();
-        })
-        .catch(() => {
-          // Complete the animation of the  progress bar.
-          NProgress.done();
-        });
-    },
-
-      //----------------------------- Submit Date Picker -------------------\\
+    //----------------------------- Submit Date Picker -------------------\\
     Submit_filter_dateRange() {
       var self = this;
       self.startDate =  self.dateRange.startDate.toJSON().slice(0, 10);
@@ -407,6 +410,7 @@ export default {
           this.clients = response.data.clients;
           this.sale_returns = response.data.sale_returns;
           this.totalRows = response.data.totalRows;
+          this.rows[0].children = this.payments;
           // Complete the animation of theprogress bar.
           NProgress.done();
           this.isLoading = false;
