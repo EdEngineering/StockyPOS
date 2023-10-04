@@ -3,6 +3,7 @@ FROM php:7.4-apache
 # install packages
 RUN apt-get update && apt-get install -y \
         mariadb-client \
+        npm \
         libzip-dev \
         libpng-dev \
         libonig-dev \
@@ -34,7 +35,7 @@ RUN cp .env.example .env
 RUN mkdir -p /var/www/stocky/storage/framework/sessions
 
 RUN chown -R www-data:www-data /var/www/stocky/storage \
-&& chown -R www-data:www-data /var/www/stocky/bootstrap/cache && chmod www-data:www-data .env
+&& chown -R www-data:www-data /var/www/stocky/bootstrap/cache && chown www-data:www-data .env
 
 RUN a2enmod rewrite headers
 COPY stocky.conf /etc/apache2/sites-available/stocky.conf
