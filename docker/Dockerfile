@@ -1,7 +1,7 @@
-FROM node:14.15.5 as node
-WORKDIR /app
-COPY . .
-RUN npm install
+# FROM node:14.15.5 as node
+# WORKDIR /app
+# COPY . .
+# RUN npm install
 
 
 # use the official PHP image as base image
@@ -34,7 +34,7 @@ COPY --from=composer:2.6.4 /usr/bin/composer /usr/bin/composer
 # show that both Composer and PHP run as expected
 WORKDIR /var/www/stocky
 COPY . .
-COPY --from=node /app/node_modules node_modules
+# COPY --from=node /app/node_modules node_modules
 
 RUN composer update && composer install
 
