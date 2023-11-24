@@ -71,6 +71,17 @@
       'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
     ),
   ),
+  'macellan/laravel-zip' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Macellan\\Zip\\ZipServiceProvider',
+    ),
+    'aliases' => 
+    array (
+      'Zip' => 'Macellan\\Zip\\ZipFacade',
+    ),
+  ),
   'nesbot/carbon' => 
   array (
     'providers' => 
@@ -78,11 +89,33 @@
       0 => 'Carbon\\Laravel\\ServiceProvider',
     ),
   ),
+  'nexmo/laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Nexmo\\Laravel\\NexmoServiceProvider',
+    ),
+    'aliases' => 
+    array (
+      'Nexmo' => 'Nexmo\\Laravel\\Facade\\Nexmo',
+    ),
+  ),
   'nunomaduro/collision' => 
   array (
     'providers' => 
     array (
       0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    ),
+  ),
+  'nwidart/laravel-modules' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Nwidart\\Modules\\LaravelModulesServiceProvider',
+    ),
+    'aliases' => 
+    array (
+      'Module' => 'Nwidart\\Modules\\Facades\\Module',
     ),
   ),
   'oscarafdev/migrations-generator' => 
